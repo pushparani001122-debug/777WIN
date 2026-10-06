@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin & Win - 777WIN</title>
+    <style>
+        :root {
+            --bg-main: #070b19;
+            --bg-card: #0f172a;
+            --accent-gold: #d4af37;
+            --text-white: #ffffff;
+            --text-gray: #94a3b8;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+        .back-btn {
+            background: var(--bg-card);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        h1 {
+            font-size: 26px;
+            color: var(--accent-gold);
+            margin: 10px 0 20px 0;
+            letter-spacing: 2px;
+        }
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px auto;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            border: 4px solid var(--accent-gold);
+        }
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 24px solid var(--accent-gold);
+            z-index: 10;
+        }
+        .info-box {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            max-width: 320px;
+            margin: 0 auto 20px auto;
+            font-size: 15px;
+        }
+        .info-box span {
+            color: #22c55e;
+            font-weight: bold;
+        }
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .action-btn:disabled {
+            background: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="back-btn">← Back</a>
+        <span style="font-weight: bold; color: var(--accent-gold);">777WIN</span>
+        <div></div>
+    </div>
+
+    <h1>TRY YOUR LUCK 🎡</h1>
+
+    <div class="info-box">
+        Collected Balance: <span id="collected-coins">0</span> Coins<br>
+        <small style="color: var(--text-gray);">Min. 500 coins required to cashout</small>
+    </div>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="400" height="400"></canvas>
+    </div>
+
+    <div class="btn-container">
+        <button class="action-btn" id="spin-btn" onclick="startSpin()">SPIN NOW</button>
+        <button class="action-btn" id="cashout-btn" onclick="cashoutCoins()" style="background: #22c55e; color: #fff;">CASHOUT TO WALLET</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        const sectors = [
+            { color: "#1e293b", text: "1 - 10" },
+            { color: "#0f172a", text: "0" },
+            { color: "#1e293b", text: "50-100" },
+            { color: "#0f172a", text: "200" },
+            { color: "#1e293b", text: "40" },
+            { color: "#0f172a", text: "150" },
+            { color: "#1e293b", text: "80" },
+            { color: "#0f172a", text: "500" }
+        ];
+
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const totalSectors = sectors.length;
+        const arc = Math.PI / (totalSectors / 2);
+        let angle = 0;
+        let isSpinning = false;
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let outsideRadius = 180;
+            let insideRadius = 0;
+            let textRadius = 120;
+
+            for (let i = 0; i < totalSectors; i++) {
+                let angleStart = angle + i * arc;
+                let angleEnd = angle + (i + 1) * arc;
+
+                ctx.beginPath();
+                ctx.arc(200, 200, outsideRadius, angleStart, angleEnd, false);
+                ctx.arc(200, 200, insideRadius, angleEnd, angleStart, true);
+                ctx.fillStyle = sectors[i].color;
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.fillStyle = "#d4af37";
+                ctx.translate(
+                    200 + Math.cos(angleStart + arc / 2) * textRadius,
+                    200 + Math.sin(angleStart + arc / 2) * textRadius
+                );
+                ctx.rotate(angleStart + arc / 2 + Math.PI / 2);
+                ctx.font = "bold 18px Segoe UI";
+                ctx.fillText(sectors[i].text, -ctx.measureText(sectors[i].text).width / 2, 0);
+                ctx.restore();
+            }
+        }
+
+        function updateUI() {
+            let activeUser = localStorage.getItem('active_user') || "testuser";
+            let spinData = JSON.parse(localStorage.getItem(`spin_data_${activeUser}`)) || { balance: 0, lastSpin: 0 };
+            
+            document.getElementById('collected-coins').innerText = spinData.balance;
+
+            // Check weekly limit (7 days = 7 * 24 * 60 * 60 * 1000 ms)
+            let now = new Date().getTime();
+            let oneWeek = 7 * 24 * 60 * 60 * 1000;
+            if (spinData.lastSpin && (now - spinData.lastSpin < oneWeek)) {
+                document.getElementById('spin-btn').disabled = true;
+                document.getElementById('spin-btn').innerText = "ALREADY SPINNED (NEXT IN 1 WEEK)";
+            }
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            let msgBox = document.getElementById('message');
+            msgBox.innerText = "";
+
+            // Probability logic: Index 0 ("1-10") = 20%, Index 1 ("0") = 80%
+            let rand = Math.random();
+            let winningIndex = (rand < 0.80) ? 1 : 0; // 80% chance for index 1 (0), 20% for index 0 (1-10)
+
+            // Calculate target angle to land on winningIndex
+            let spins = 5; // full rotations
+            let arcSize = 360 / totalSectors;
+            let targetAngle = spins * 360 + (360 - (winningIndex * arcSize + arcSize / 2));
+            
+            let currentRotation = 0;
+            let step = 25;
+            let rotationInterval = setInterval(() => {
+                currentRotation += step;
+                angle = (currentRotation * Math.PI) / 180;
+                drawWheel();
+
+                if (currentRotation >= targetAngle) {
+                    clearInterval(rotationInterval);
+                    isSpinning = false;
+                    processWin(winningIndex);
+                }
+            }, 20);
+        }
+
+        function processWin(winningIndex) {
+            let wonAmount = 0;
+            if (winningIndex === 0) {
+                // Point 1: 1 - 10 random
+                wonAmount = Math.floor(Math.random() * 10) + 1;
+            } else {
+                // Point 2: 0
+                wonAmount = 0;
+            }
+
+            let activeUser = localStorage.getItem('active_user') || "testuser";
+            let spinData = JSON.parse(localStorage.getItem(`spin_data_${activeUser}`)) || { balance: 0, lastSpin: 0 };
+
+            spinData.balance += wonAmount;
+            spinData.lastSpin = new Date().getTime();
+            localStorage.setItem(`spin_data_${activeUser}`, JSON.stringify(spinData));
+
+            updateUI();
+            let msgBox = document.getElementById('message');
+            msgBox.style.color = wonAmount > 0 ? "#22c55e" : "#ef4444";
+            msgBox.innerText = `You won ${wonAmount} coins! (You can spin again after 1 week)`;
+        }
+
+        function cashoutCoins() {
+            let activeUser = localStorage.getItem('active_user') || "testuser";
+            let spinData = JSON.parse(localStorage.getItem(`spin_data_${activeUser}`)) || { balance: 0, lastSpin: 0 };
+            let msgBox = document.getElementById('message');
+
+            if (spinData.balance < 500) {
+                msgBox.style.color = "#ef4444";
+                msgBox.innerText = "Minimum 500 coins required to cashout!";
+                return;
+            }
+
+            // Add to main wallet balance
+            let userDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+            let userObj = userDb.find(u => u.username === activeUser || u.email === activeUser);
+
+            if (!userObj) {
+                userObj = { username: activeUser, balance: 0 };
+                userDb.push(userObj);
+            }
+
+            userObj.balance = (parseFloat(userObj.balance) || 0) + spinData.balance;
+            localStorage.setItem('user_backup_db', JSON.stringify(userDb));
+
+            // Reset spin collected balance
+            spinData.balance = 0;
+            localStorage.setItem(`spin_data_${activeUser}`, JSON.stringify(spinData));
+
+            updateUI();
+            msgBox.style.color = "#22c55e";
+            msgBox.innerText = "Successfully transferred spin coins to main wallet!";
+        }
+
+        window.onload = () => {
+            drawWheel();
+            updateUI();
+        };
+    </script>
+</body>
+</html>

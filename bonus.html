@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonuses - 777WIN</title>
+    <style>
+        :root {
+            --bg-main: #070b19;
+            --bg-card: #0f172a;
+            --accent-gold: #d4af37;
+            --text-white: #ffffff;
+            --text-gray: #94a3b8;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+        .back-btn {
+            background: var(--bg-card);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        h1 {
+            font-size: 28px;
+            color: var(--accent-gold);
+            text-align: center;
+            margin: 10px 0 20px 0;
+            letter-spacing: 2px;
+        }
+        .bonus-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .bonus-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bonus-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+        .bonus-desc {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+        .bonus-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .bonus-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #22c55e;
+        }
+        .claim-btn {
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        /* Notification Toast Styling */
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ef4444;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        .no-bonus {
+            text-align: center;
+            color: var(--text-gray);
+            margin-top: 40px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+  <div class="header">
+        <a href="index.html" class="back-btn">← Back</a>
+        <span style="font-weight: bold; color: var(--accent-gold);">777WIN</span>
+        <div></div>
+    </div>
+
+    <h1>YOUR BONUSES</h1>
+
+    <div class="bonus-container" id="bonus-list-container">
+        <!-- Dynamic Bonuses -->
+    </div>
+
+    <div id="toast">Needs not fulfilled</div>
+
+    <script>
+        function showToast(message, isSuccess = false) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.backgroundColor = isSuccess ? "#22c55e" : "#ef4444";
+            toast.style.display = "block";
+            
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 3000);
+        }
+
+        function loadBonuses() {
+            const container = document.getElementById('bonus-list-container');
+            container.innerHTML = '';
+
+            let activeUser = localStorage.getItem('active_user') || "testuser";
+            
+            // Admin panel se generate kiye gaye bonuses
+            let bonuses = JSON.parse(localStorage.getItem('admin_bonuses')) || [
+                { id: 1, title: "Deposit Bonus", desc: "Add ₹20 to that user who deposited 10 times", amount: 20, type: "deposit", targetCount: 10 }
+            ];
+
+            // Jis user ke liye bonus hide ho chuka hai unki IDs
+            let hiddenBonuses = JSON.parse(localStorage.getItem(`hidden_bonuses_${activeUser}`)) || [];
+
+            // Filter out hidden bonuses
+            let availableBonuses = bonuses.filter(b => !hiddenBonuses.includes(b.id));
+
+            if (availableBonuses.length === 0) {
+                container.innerHTML = '<div class="no-bonus">No bonuses available right now!</div>';
+                return;
+            }
+
+            availableBonuses.forEach((bonus) => {
+                let card = document.createElement('div');
+                card.className = 'bonus-card';
+                card.innerHTML = `
+                    <div class="bonus-title">${bonus.title}</div>
+                    <div class="bonus-desc">${bonus.desc}</div>
+                    <div class="bonus-footer">
+                        <span class="bonus-amount">+₹${bonus.amount}</span>
+                        <button class="claim-btn" onclick="claimBonus(${bonus.id})">Claim</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function claimBonus(bonusId) {
+            let activeUser = localStorage.getItem('active_user');
+            if (!activeUser) {
+                activeUser = "testuser";
+                localStorage.setItem('active_user', activeUser);
+            }
+
+            let bonuses = JSON.parse(localStorage.getItem('admin_bonuses')) || [
+                { id: 1, title: "Deposit Bonus", desc: "Add ₹20 to that user who deposited 10 times", amount: 20, type: "deposit", targetCount: 10 }
+            ];
+            
+            let bonus = bonuses.find(b => b.id === bonusId);
+            if (!bonus) return;
+
+            let historyDb = JSON.parse(localStorage.getItem('user_history_db')) || [];
+            let userDeposits = historyDb.filter(h => h.user === activeUser && h.type && h.type.toLowerCase() === 'deposit');
+            let depositCount = userDeposits.length;
+            let target = bonus.targetCount || 10;
+
+            if (depositCount >= target) {
+                // Requirements fulfilled - balance add karo aur bonus hata do
+                let userDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                let userObj = userDb.find(u => u.username === activeUser || u.email === activeUser);
+
+                if (!userObj) {
+                    userObj = { username: activeUser, balance: 0 };
+                    userDb.push(userObj);
+                }
+
+                userObj.balance = (parseFloat(userObj.balance) || 0) + parseFloat(bonus.amount);
+                localStorage.setItem('user_backup_db', JSON.stringify(userDb));
+
+                // Claimed bonus ko bhi hidden list mein daal do taaki dobara na dikhe
+                let hiddenBonuses = JSON.parse(localStorage.getItem(`hidden_bonuses_${activeUser}`)) || [];
+                hiddenBonuses.push(bonus.id);
+                localStorage.setItem(`hidden_bonuses_${activeUser}`, JSON.stringify(hiddenBonuses));
+
+                showToast(`Success! ₹${bonus.amount} added to wallet.`, true);
+                setTimeout(() => { loadBonuses(); }, 1500);
+            } else {
+                // Needs not fulfilled - 3 seconds toast and remove bonus option for this user
+                showToast("Needs not fulfilled", false);
+
+                let hiddenBonuses = JSON.parse(localStorage.getItem(`hidden_bonuses_${activeUser}`)) || [];
+                hiddenBonuses.push(bonus.id);
+                localStorage.setItem(`hidden_bonuses_${activeUser}`, JSON.stringify(hiddenBonuses));
+
+                setTimeout(() => { loadBonuses(); }, 1500);
+            }
+        }
+
+        window.onload = loadBonuses;
+    </script>
+</body>
+</html>

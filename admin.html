@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Admin Panel - 777WIN</title>
+    <style>
+        :root {
+            --bg-main: #070b19;
+            --bg-card: #0f172a;
+            --accent-gold: #d4af37;
+            --text-white: #ffffff;
+            --text-gray: #94a3b8;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        /* Matrix Code Layers Background Effect */
+        canvas#matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.15;
+        }
+        /* Security Lock Screen */
+        #auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+        .auth-card {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .auth-card h2 {
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+        }
+        .auth-card p {
+            color: var(--text-gray);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .auth-card input {
+            width: 100%;
+            padding: 12px;
+            background: #020617;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: var(--text-white);
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .auth-card button {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        /* Main Admin Dashboard (Hidden initially) */
+        #admin-dashboard {
+            display: none;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            color: var(--accent-gold);
+            font-size: 24px;
+            margin: 0;
+        }
+        .logout-btn {
+            background: #b91c1c;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .section-box {
+            background-color: var(--bg-card);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-box h3 {
+            color: var(--accent-gold);
+            margin-top: 0;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 8px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .form-row input, .form-row select {
+            flex: 1;
+            padding: 10px;
+            background: #020617;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 6px;
+            color: var(--text-white);
+            outline: none;
+        }
+        .btn-primary {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #1e293b;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            color: var(--accent-gold);
+            background: #020617;
+        }
+        .action-link {
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            border: none;
+        }
+        .btn-approve { background: #22c55e; color: #fff; }
+        .btn-reject { background: #ef4444; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <!-- Matrix Code Background Canvas -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- Secure Login / Authentication Screen -->
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h2>🔒 SECURE ACCESS</h2>
+            <p>High-Tech Encrypted Admin Terminal</p>
+            <input type="password" id="master-pass" placeholder="Enter Master Password">
+            <button onclick="verifySecurityAccess()">Authenticate</button>
+            <div id="auth-error" style="color: #ef4444; font-size: 13px; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- Main Admin Panel Dashboard -->
+    <div id="admin-dashboard">
+        <div class="header">
+            <h1>777WIN // ADMIN COMMAND CENTER</h1>
+            <button class="logout-btn" onclick="secureLogout()">Lock Terminal</button>
+        </div>
+
+        <!-- 1. Coupons Management -->
+        <div class="section-box">
+            <h3>Generate Coupon Code</h3>
+            <div class="form-row">
+                <input type="text" id="coupon-code" placeholder="Code (e.g. WIN999)">
+                <input type="number" id="coupon-amount" placeholder="Amount (₹)">
+                <button class="btn-primary" onclick="createCoupon()">Create</button>
+            </div>
+        </div>
+
+        <!-- 2. Bonuses Management -->
+        <div class="section-box">
+            <h3>Create Platform Bonus</h3>
+            <div class="form-row">
+                <input type="text" id="bonus-title" placeholder="Bonus Title">
+                <input type="text" id="bonus-desc" placeholder="Description (e.g. Deposit 10 times)">
+                <input type="number" id="bonus-amount" placeholder="Amount (₹)">
+                <input type="number" id="bonus-target" placeholder="Target Count (e.g. 10)">
+                <button class="btn-primary" onclick="createBonus()">Add Bonus</button>
+            </div>
+        </div>
+
+        <!-- 3. Deposit & Withdrawal Requests -->
+        <div class="section-box">
+            <h3>Pending Deposit / Withdrawal Requests</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Details/Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-table-body">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. Games Backend Controller (e.g., Aviator Multiplier) -->
+        <div class="section-box">
+            <h3>Games Backend Controller (Aviator Crash Multiplier)</h3>
+            <div class="form-row">
+                <input type="number" step="0.01" id="aviator-multiplier" placeholder="Set Max Multiplier (e.g. 2.45)">
+                <button class="btn-primary" onclick="saveGameController()">Update Multiplier</button>
+            </div>
+            <p style="font-size: 13px; color: var(--text-gray);">Current locked multiplier for next rounds will respect this setting.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- HIGH-TECH SECURITY & ACCESS LAYER ---
+        const MASTER_HASH = "777WIN_MASTER_SECURE_99#ADMIN"; // Secure Salted Representation
+        const SECRET_AUTH_PARAM = "777_SECURE_KEY_9988";
+
+        // Check URL Parameters for Secret Key Validation
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authKey = urlParams.get('auth');
+
+            if (authKey !== SECRET_AUTH_PARAM) {
+                // Unauthorized access attempt -> Redirect instantly
+                window.location.href = "index.html";
+                return;
+            }
+
+            // Check if session token already exists in secure sessionStorage
+            if (sessionStorage.getItem('admin_active_session') === "true") {
+                unlockAdminPanel();
+            }
+
+            initMatrixBackground();
+        };
+
+        function verifySecurityAccess() {
+            const inputVal = document.getElementById('master-pass').value;
+            const errorBox = document.getElementById('auth-error');
+
+            if (inputVal === MASTER_HASH) {
+                sessionStorage.setItem('admin_active_session', "true");
+                unlockAdminPanel();
+            } else {
+                errorBox.innerText = "ACCESS DENIED: Invalid Security Credential!";
+                document.getElementById('master-pass').value = "";
+            }
+        }
+
+        function unlockAdminPanel() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            loadAdminData();
+        }
+
+        function secureLogout() {
+            sessionStorage.removeItem('admin_active_session');
+            window.location.href = "index.html";
+        }
+
+        // --- MATRIX CODE LAYERS BACKGROUND ANIMATION ---
+        function initMatrixBackground() {
+            const canvas = document.getElementById('matrix-bg');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const katakana = '01777WINABCDEFXYZ₿₹$#@%';
+            const alphabet = katakana.split('');
+            const fontSize = 14;
+            const columns = canvas.width / fontSize;
+            const rainDrops = [];
+
+            for (let x = 0; x < columns; x++) {
+                rainDrops[x] = 1;
+            }
+
+            function renderMatrix() {
+                ctx.fillStyle = 'rgba(7, 11, 25, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#d4af37';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < rainDrops.length; i++) {
+                    const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                    if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        rainDrops[i] = 0;
+                    }
+                    rainDrops[i]++;
+                }
+            }
+            setInterval(renderMatrix, 30);
+        }
+
+        // --- ADMIN PANEL LOGIC & CONTROLLER FUNCTIONS ---
+        function createCoupon() {
+            let code = document.getElementById('coupon-code').value.trim().toUpperCase();
+            let amount = parseFloat(document.getElementById('coupon-amount').value);
+
+            if (!code || !amount) {
+                alert('Please enter valid code and amount!');
+                return;
+            }
+
+            let coupons = JSON.parse(localStorage.getItem('admin_coupons')) || [];
+            coupons.push({ code: code, amount: amount, isUsed: false });
+            localStorage.setItem('admin_coupons', JSON.stringify(coupons));
+
+            alert(`Coupon ${code} created successfully!`);
+            document.getElementById('coupon-code').value = '';
+            document.getElementById('coupon-amount').value = '';
+        }
+
+        function createBonus() {
+            let title = document.getElementById('bonus-title').value.trim();
+            let desc = document.getElementById('bonus-desc').value.trim();
+            let amount = parseFloat(document.getElementById('bonus-amount').value);
+            let target = parseInt(document.getElementById('bonus-target').value) || 10;
+
+            if (!title || !desc || !amount) {
+                alert('Please fill all bonus fields!');
+                return;
+            }
+
+            let bonuses = JSON.parse(localStorage.getItem('admin_bonuses')) || [];
+            bonuses.push({ id: Date.now(), title, desc, amount, targetCount: target });
+            localStorage.setItem('admin_bonuses', JSON.stringify(bonuses));
+
+            alert('Bonus added successfully!');
+            document.getElementById('bonus-title').value = '';
+            document.getElementById('bonus-desc').value = '';
+            document.getElementById('bonus-amount').value = '';
+            document.getElementById('bonus-target').value = '';
+        }
+
+        function loadAdminData() {
+            let tbody = document.getElementById('requests-table-body');
+            tbody.innerHTML = '';
+
+            // Simulated or live history/requests db
+            let requests = JSON.parse(localStorage.getItem('admin_requests')) || [
+                { id: 1, user: "user_test", type: "Deposit", details: "₹500 (UTR: 123456)" }
+            ];
+
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-gray);">No pending requests</td></tr>';
+                return;
+            }
+
+            requests.forEach((req, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${req.user}</td>
+                    <td>${req.type}</td>
+                    <td>${req.details}</td>
+                    <td>
+                        <button class="action-link btn-approve" onclick="handleRequest(${index}, 'approve')">Approve</button>
+                        <button class="action-link btn-reject" onclick="handleRequest(${index}, 'reject')">Reject</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleRequest(index, action) {
+            let requests = JSON.parse(localStorage.getItem('admin_requests')) || [];
+            let req = requests[index];
+            if (!req) return;
+
+            if (action === 'approve') {
+                // Process wallet balance addition/deduction
+                let userDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                let userObj = userDb.find(u => u.username === req.user || u.email === req.user);
+                if (userObj) {
+                    // Extract amount roughly from string details
+                    userObj.balance = (parseFloat(userObj.balance) || 0) + 500;
+                    localStorage.setItem('user_backup_db', JSON.stringify(userDb));
+                }
+                alert('Request Approved & Wallet Updated!');
+            } else {
+                alert('Request Rejected!');
+            }
+
+            requests.splice(index, 1);
+            localStorage.setItem('admin_requests', JSON.stringify(requests));
+            loadAdminData();
+        }
+
+        function saveGameController() {
+            let multiplier = document.getElementById('aviator-multiplier').value;
+            if (!multiplier) {
+                alert('Please enter a multiplier value!');
+                return;
+            }
+            localStorage.setItem('admin_game_aviator_limit', multiplier);
+            alert(`Aviator crash limit successfully locked at ${multiplier}x!`);
+        }
+    </script>
+</body>
+</html>

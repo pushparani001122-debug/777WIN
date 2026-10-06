@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Code - 777WIN</title>
+    <style>
+        :root {
+            --bg-main: #070b19;
+            --bg-card: #0f172a;
+            --accent-gold: #d4af37;
+            --text-white: #ffffff;
+            --text-gray: #94a3b8;
+            --red-btn: #b91c1c;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 16px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 10px;
+        }
+        .back-btn {
+            background: var(--bg-card);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        h1 {
+            font-size: 28px;
+            color: var(--accent-gold);
+            text-align: center;
+            margin: 10px 0 20px 0;
+            letter-spacing: 2px;
+        }
+        .coupon-container {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .coupon-container p {
+            color: var(--text-gray);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            color: var(--text-white);
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            text-transform: uppercase;
+        }
+        .form-group input:focus {
+            border-color: var(--accent-gold);
+        }
+        .claim-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #d4af37, #aa7c11);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .claim-btn:active {
+            opacity: 0.9;
+        }
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="back-btn">← Back</a>
+        <span style="font-weight: bold; color: var(--accent-gold);">777WIN</span>
+        <div></div>
+    </div>
+
+    <h1>COUPON CODE</h1>
+
+    <div class="coupon-container">
+        <p>Enter your active coupon code below to instantly claim bonus amount into your wallet!</p>
+        
+        <div class="form-group">
+            <label>Enter Coupon Code</label>
+            <input type="text" id="coupon-input" placeholder="e.g. WIN777">
+        </div>
+
+        <button class="claim-btn" onclick="claimCoupon()">Claim Bonus</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        function claimCoupon() {
+            const codeInput = document.getElementById('coupon-input').value.trim().toUpperCase();
+            const msgBox = document.getElementById('message');
+
+            if (!codeInput) {
+                msgBox.style.color = '#ef4444';
+                msgBox.innerText = 'Please enter a coupon code!';
+                return;
+            }
+
+            // LocalStorage se admin ke banaye gaye coupons fetch karna
+            let coupons = JSON.parse(localStorage.getItem('admin_coupons')) || [];
+            
+            // Check karein ki coupon list mein code mojood hai aur active/unclaimed hai
+            let couponIndex = coupons.findIndex(c => c.code.toUpperCase() === codeInput && !c.isUsed);
+
+            if (couponIndex === -1) {
+                msgBox.style.color = '#ef4444';
+                msgBox.innerText = 'Invalid or already expired coupon code!';
+                return;
+            }
+
+            let coupon = coupons[couponIndex];
+            let bonusAmount = parseFloat(coupon.amount);
+
+            // User ka active user data aur balance update karna
+            let activeUser = localStorage.getItem('active_user');
+            if (!activeUser) {
+                msgBox.style.color = '#ef4444';
+                msgBox.innerText = 'Please login first to claim coupon!';
+                return;
+            }
+
+            let userDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+            let userObj = userDb.find(u => u.username === activeUser || u.email === activeUser);
+
+            if (!userObj) {
+                msgBox.style.color = '#ef4444';
+                msgBox.innerText = 'User account not found!';
+                return;
+            }
+
+            // Balance update karo
+            userObj.balance = (parseFloat(userObj.balance) || 0) + bonusAmount;
+            localStorage.setItem('user_backup_db', JSON.stringify(userDb));
+
+            // Bonus history record add karna (history.html ke liye)
+            let historyDb = JSON.parse(localStorage.getItem('user_history_db')) || [];
+            historyDb.push({
+                user: activeUser,
+                type: 'Bonus',
+                details: `Coupon Claimed: ${coupon.code}`,
+                amount: bonusAmount,
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('user_history_db', JSON.stringify(historyDb));
+
+            // Coupon ko expire/used mark kar do taaki dobara use na ho sake
+            coupons[couponIndex].isUsed = true;
+            localStorage.setItem('admin_coupons', JSON.stringify(coupons));
+
+            msgBox.style.color = '#22c55e';
+            msgBox.innerText = `Success! ₹${bonusAmount} added to your wallet.`;
+            document.getElementById('coupon-input').value = '';
+        }
+    </script>
+</body>
+</html>

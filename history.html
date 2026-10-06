@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction & Game History - 777WIN</title>
+    <style>
+        :root {
+            --bg-dark: #070b19;
+            --primary-blue: #0f172a;
+            --accent-gold: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #bf953f, #fc6, #fbf5b7, #f39c12);
+            --text-light: #ffffff;
+            --text-gray: #94a3b8;
+            --red-layer: #b91c1c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--primary-blue);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #020617;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .title {
+            color: var(--accent-gold);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* History Tabs */
+        .history-tabs {
+            display: flex;
+            background: #0b0f19;
+            padding: 10px;
+            gap: 6px;
+            overflow-x: auto;
+            border-bottom: 1px solid #1e293b;
+            scrollbar-width: none;
+        }
+        .history-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .history-tab {
+            padding: 6px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-gray);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .history-tab.active {
+            background: var(--accent-gold);
+            color: #070b19;
+            font-weight: bold;
+            border-color: var(--accent-gold);
+        }
+
+        /* History List Area */
+        .history-list {
+            padding: 16px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .item-date {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+
+        .item-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-amount {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .amount-green { color: #16a34a; }
+        .amount-red { color: #ef4444; }
+
+        .item-status {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .status-success { background: rgba(22, 163, 74, 0.2); color: #16a34a; }
+        .status-pending { background: rgba(202, 138, 4, 0.2); color: #ca8a04; }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-gray);
+            margin-top: 60px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">📜 History & Records</div>
+            <button class="back-btn" onclick="goBack()">Dashboard</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="history-tabs">
+            <div class="history-tab active" onclick="switchTab('ALL', this)">All Records</div>
+            <div class="history-tab" onclick="switchTab('BETS', this)">Bets History</div>
+            <div class="history-tab" onclick="switchTab('DEPOSIT', this)">Deposit</div>
+            <div class="history-tab" onclick="switchTab('WITHDRAW', this)">Withdrawal</div>
+            <div class="history-tab" onclick="switchTab('BONUS', this)">Bonus</div>
+        </div>
+
+        <!-- List Container -->
+        <div class="history-list" id="history-container">
+            <!-- Dynamically populated real history items -->
+        </div>
+    </div>
+
+    <script>
+        let allHistoryData = [];
+
+        window.onload = function() {
+            const activeUser = localStorage.getItem('active_user');
+            if (!activeUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Real records fetch from localStorage (Strictly user specific or general activity keys)
+            const bets = JSON.parse(localStorage.getItem('user_bets_history')) || [];
+            const deposits = JSON.parse(localStorage.getItem('user_deposit_history')) || [];
+            const withdrawals = JSON.parse(localStorage.getItem('user_withdraw_history')) || [];
+            const bonuses = JSON.parse(localStorage.getItem('user_bonus_history')) || [];
+
+            allHistoryData = [...bets, ...deposits, ...withdrawals, ...bonuses];
+            renderHistory('ALL');
+        };
+
+        function switchTab(type, el) {
+            document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderHistory(type);
+        }
+
+        function renderHistory(filterType) {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '';
+
+            const filtered = filterType === 'ALL' 
+                ? allHistoryData 
+                : allHistoryData.filter(item => item.type === filterType);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">No history records found!</div>`;
+                return;
+            }
+
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filtered.forEach(item => {
+                const isPositive = item.amount > 0;
+                const amountClass = isPositive ? 'amount-green' : 'amount-red';
+                const formattedAmount = (isPositive ? '+' : '') + `₹${Math.abs(item.amount)}`;
+
+                const card = document.createElement('div');
+                card.className = 'history-item';
+                card.innerHTML = `
+                    <div class="item-left">
+                        <span class="item-title">${item.title}</span>
+                        <span class="item-date">${item.date}</span>
+                    </div>
+                    <div class="item-right">
+                        <span class="item-amount ${amountClass}">${formattedAmount}</span>
+                        <span class="item-status ${item.status === 'Pending' ? 'status-pending' : 'status-success'}">${item.status}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

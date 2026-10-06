@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - 777WIN</title>
+    <style>
+        :root {
+            --bg-dark: #070b19;
+            --primary-blue: #0f172a;
+            --accent-gold: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #bf953f, #fc6, #fbf5b7, #f39c12);
+            --text-light: #ffffff;
+            --text-gray: #94a3b8;
+            --red-layer: #b91c1c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .account-container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 2px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Top Right Logout Button */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #b91c1c;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .logout-btn:active {
+            opacity: 0.8;
+        }
+
+        .account-title {
+            color: var(--accent-gold);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .user-info-box {
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        /* Center Back to Dashboard Button */
+        .dashboard-btn-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .golden-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--gold-gradient);
+            border: none;
+            border-radius: 8px;
+            color: #070b19;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .golden-btn:active {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="account-container">
+        <!-- Top Right Logout Button -->
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+
+        <h2 class="account-title">My Account</h2>
+
+        <!-- Medium Size Card for User Details -->
+        <div class="user-info-box">
+            <div class="info-row">
+                <span class="info-label">Username</span>
+                <span class="info-value" id="acc-username">Loading...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Wallet Balance</span>
+                <span class="info-value" id="acc-balance">₹0.00</span>
+            </div>
+        </div>
+
+        <!-- Center Back to Dashboard Button -->
+        <div class="dashboard-btn-container">
+            <button class="golden-btn" onclick="goBackToDashboard()">Back to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        // Load active user details on page load
+        window.onload = function() {
+            const activeUser = localStorage.getItem('active_user');
+            if (!activeUser) {
+                // Agar user logged in nahi hai toh wapas login page par bhej dein
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('acc-username').innerText = activeUser;
+
+            // Fetch balance from backup db or active session storage
+            let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+            const userObj = backupDb.find(u => u.username === activeUser);
+            
+            if (userObj) {
+                const balance = userObj.balance !== undefined ? userObj.balance : 0.00;
+                document.getElementById('acc-balance').innerText = `₹${balance.toFixed(2)}`;
+            } else {
+                document.getElementById('acc-balance').innerText = `₹0.00`;
+            }
+        };
+
+        // Logout function
+        function handleLogout() {
+            if (confirm("Kya aap sach mein logout karna chahte hain?")) {
+                localStorage.removeItem('active_user');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Back to dashboard function
+        function goBackToDashboard() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
