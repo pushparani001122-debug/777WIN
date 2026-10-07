@@ -11,7 +11,7 @@
         .header h1 { font-size: 1.2rem; color: #f59e0b; }
         .lock-btn { background: #dc2626; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
-        .card h2 { font-size: 1rem; margin-bottom: 15px; color: #38bdf8; border-bottom: 1px solid #30363d; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .card h2 { font-size: 1rem; margin-bottom: 15px; color: #38bdf8; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #9ca3af; }
         input, select, textarea { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 0.9rem; }
@@ -22,9 +22,6 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
         th { color: #9ca3af; background: #0d1117; }
-        .add-icon-btn { background: #38bdf8; color: #0b0f19; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: #161b22; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; border: 1px solid #30363d; }
     </style>
 </head>
 <body>
@@ -32,6 +29,20 @@
     <div class="header">
         <h1>777WIN // ADMIN CENTER</h1>
         <button class="lock-btn" onclick="lockTerminal()">Lock Terminal</button>
+    </div>
+
+    <!-- NEW: Deposit Payment Gateway Controller (QR & UPI) -->
+    <div class="card">
+        <h2>Deposit QR & UPI Controller</h2>
+        <div class="form-group">
+            <label>Admin UPI ID</label>
+            <input type="text" id="adminUpiInput" placeholder="e.g. yourname@paytm">
+        </div>
+        <div class="form-group">
+            <label>Upload QR Code Image (Gallery)</label>
+            <input type="file" id="adminQrInput" accept="image/*" style="background:#0d1117; padding:8px;">
+        </div>
+        <button class="btn btn-green" onclick="savePaymentSettings()">Save Payment Gateway</button>
     </div>
 
     <!-- 1. Generate Coupon Code -->
@@ -46,25 +57,9 @@
             <input type="number" id="couponAmount" placeholder="e.g. 100">
         </div>
         <button class="btn" onclick="generateCoupon()">Create Coupon</button>
-        <div style="margin-top: 15px;">
-            <label>Active Coupons List</label>
-            <table>
-                <thead><tr><th>Code</th><th>Amount</th><th>Action</th></tr></thead>
-                <tbody id="adminCouponTable"></tbody>
-            </table>
-        </div>
     </div>
 
-    <!-- 2. Create Platform Bonus -->
-    <div class="card">
-        <h2>Create Platform Bonus <button class="add-icon-btn" onclick="openBonusModal()">+</button></h2>
-        <table>
-            <thead><tr><th>Title</th><th>Condition</th><th>Amount</th><th>Action</th></tr></thead>
-            <tbody id="adminBonusTable"></tbody>
-        </table>
-    </div>
-
-    <!-- 3. Pending Deposit / Withdrawal Requests -->
+    <!-- 2. Pending Deposit / Withdrawal Requests -->
     <div class="card">
         <h2>Pending Deposit / Withdrawal Requests</h2>
         <table>
@@ -73,122 +68,48 @@
         </table>
     </div>
 
-    <!-- 4. Games Backend Controller -->
-    <div class="card">
-        <h2>Games Multiplier Controller <button class="add-icon-btn" onclick="openGameModal()">+</button></h2>
-        <table>
-            <thead><tr><th>Game Name</th><th>Control Value</th><th>Action</th></tr></thead>
-            <tbody id="adminGamesTable"></tbody>
-        </table>
-    </div>
-
-    <!-- Modal for Bonus -->
-    <div id="bonusModal" class="modal">
-        <div class="modal-content">
-            <h3>Add New Bonus</h3>
-            <div class="form-group" style="margin-top:10px;"><label>Bonus Title</label><input type="text" id="bTitle"></div>
-            <div class="form-group"><label>Condition (e.g., Min Deposit 500)</label><input type="text" id="bCondition"></div>
-            <div class="form-group"><label>Bonus Amount (₹)</label><input type="number" id="bAmount"></div>
-            <button class="btn btn-green" onclick="saveBonus()">Save Bonus</button>
-            <button class="btn btn-red" onclick="closeBonusModal()" style="margin-top:5px;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Modal for Game Control -->
-    <div id="gameModal" class="modal">
-        <div class="modal-content">
-            <h3>Add/Control Game</h3>
-            <div class="form-group" style="margin-top:10px;"><label>Game Name</label><input type="text" id="gName" placeholder="e.g. Aviator, Mines"></div>
-            <div class="form-group"><label>Multiplier / Control Value</label><input type="text" id="gVal" placeholder="e.g. 2.00x"></div>
-            <button class="btn btn-green" onclick="saveGame()">Update Game</button>
-            <button class="btn btn-red" onclick="closeGameModal()" style="margin-top:5px;">Cancel</button>
-        </div>
-    </div>
-
     <script>
-        // Security Auth Check
         const urlParams = new URLSearchParams(window.location.search);
         if(urlParams.get('auth') !== '777_SECURE_KEY_9988') {
             document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;color:red;'>Access Denied! Unauthorized Entry.</h2>";
         }
 
-        function lockTerminal() {
-            window.location.href = 'index.html';
-        }
+        function lockTerminal() { window.location.href = 'index.html'; }
 
-        // Load Data on Start
         window.onload = function() {
-            loadAdminCoupons();
-            loadAdminBonuses();
+            loadPaymentSettings();
             loadAdminRequests();
-            loadAdminGames();
         };
 
-        // 1. Coupons Logic
-        function generateCoupon() {
-            let code = document.getElementById('couponCode').value.trim();
-            let amount = document.getElementById('couponAmount').value;
-            if(!code || !amount) return alert('Fill all fields');
-            
-            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            coupons.push({code, amount});
-            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
-            document.getElementById('couponCode').value = '';
-            document.getElementById('couponAmount').value = '';
-            loadAdminCoupons();
-            alert('Coupon Created Successfully!');
+        // Save QR & UPI settings
+        function savePaymentSettings() {
+            let upi = document.getElementById('adminUpiInput').value.trim();
+            let fileInput = document.getElementById('adminQrInput');
+
+            if(fileInput.files && fileInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let qrBase64 = e.target.result;
+                    let paymentData = { upi: upi || "777win@upi", qr: qrBase64 };
+                    localStorage.setItem('admin_deposit_settings', JSON.stringify(paymentData));
+                    alert('Payment gateway (UPI & QR) updated successfully!');
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                let existingData = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {};
+                let paymentData = { upi: upi || existingData.upi || "777win@upi", qr: existingData.qr || "" };
+                localStorage.setItem('admin_deposit_settings', JSON.stringify(paymentData));
+                alert('UPI ID updated successfully!');
+            }
         }
 
-        function loadAdminCoupons() {
-            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            let html = '';
-            coupons.forEach((c, index) => {
-                html += `<tr><td>${c.code}</td><td>₹${c.amount}</td><td><button class="btn btn-red btn-sm" onclick="deleteCoupon(${index})">Delete</button></td></tr>`;
-            });
-            document.getElementById('adminCouponTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No coupons active</td></tr>';
+        function loadPaymentSettings() {
+            let settings = JSON.parse(localStorage.getItem('admin_deposit_settings'));
+            if(settings) {
+                if(settings.upi) document.getElementById('adminUpiInput').value = settings.upi;
+            }
         }
 
-        function deleteCoupon(index) {
-            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            coupons.splice(index, 1);
-            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
-            loadAdminCoupons();
-        }
-
-        // 2. Bonus Logic
-        function openBonusModal() { document.getElementById('bonusModal').style.display = 'flex'; }
-        function closeBonusModal() { document.getElementById('bonusModal').style.display = 'none'; }
-        
-        function saveBonus() {
-            let title = document.getElementById('bTitle').value;
-            let condition = document.getElementById('bCondition').value;
-            let amount = document.getElementById('bAmount').value;
-            if(!title || !condition || !amount) return alert('Fill all fields');
-
-            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
-            bonuses.push({title, condition, amount});
-            localStorage.setItem('adminBonuses', JSON.stringify(bonuses));
-            closeBonusModal();
-            loadAdminBonuses();
-        }
-
-        function loadAdminBonuses() {
-            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
-            let html = '';
-            bonuses.forEach((b, index) => {
-                html += `<tr><td>${b.title}</td><td>${b.condition}</td><td>₹${b.amount}</td><td><button class="btn btn-red btn-sm" onclick="deleteBonus(${index})">Delete</button></td></tr>`;
-            });
-            document.getElementById('adminBonusTable').innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No bonuses added</td></tr>';
-        }
-
-        function deleteBonus(index) {
-            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
-            bonuses.splice(index, 1);
-            localStorage.setItem('adminBonuses', JSON.stringify(bonuses));
-            loadAdminBonuses();
-        }
-
-        // 3. Requests Logic (Deposit/Withdrawal)
         function loadAdminRequests() {
             let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
             let html = '';
@@ -213,7 +134,6 @@
             let req = requests[index];
             req.status = status;
             
-            // If approved, update user balance & history
             let userBalance = parseFloat(localStorage.getItem('userBalance') || '0');
             if(status === 'Approved' && req.type === 'Deposit') {
                 userBalance += parseFloat(req.amount);
@@ -229,36 +149,16 @@
             alert(`Request ${status} successfully!`);
         }
 
-        // 4. Games Controller Logic
-        function openGameModal() { document.getElementById('gameModal').style.display = 'flex'; }
-        function closeGameModal() { document.getElementById('gameModal').style.display = 'none'; }
-
-        function saveGame() {
-            let name = document.getElementById('gName').value;
-            let val = document.getElementById('gVal').value;
-            if(!name || !val) return alert('Fill all fields');
-
-            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
-            games.push({name, val});
-            localStorage.setItem('adminGames', JSON.stringify(games));
-            closeGameModal();
-            loadAdminGames();
-        }
-
-        function loadAdminGames() {
-            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
-            let html = '';
-            games.forEach((g, index) => {
-                html += `<tr><td>${g.name}</td><td>${g.val}</td><td><button class="btn btn-red btn-sm" onclick="deleteGame(${index})">Delete</button></td></tr>`;
-            });
-            document.getElementById('adminGamesTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No active game controllers</td></tr>';
-        }
-
-        function deleteGame(index) {
-            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
-            games.splice(index, 1);
-            localStorage.setItem('adminGames', JSON.stringify(games));
-            loadAdminGames();
+        function generateCoupon() {
+            let code = document.getElementById('couponCode').value.trim();
+            let amount = document.getElementById('couponAmount').value;
+            if(!code || !amount) return alert('Fill all fields');
+            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
+            coupons.push({code, amount});
+            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
+            document.getElementById('couponCode').value = '';
+            document.getElementById('couponAmount').value = '';
+            alert('Coupon Created Successfully!');
         }
     </script>
 </body>

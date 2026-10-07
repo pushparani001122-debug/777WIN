@@ -556,12 +556,13 @@
         </div>
     </div>
 
-    <!-- Deposit Modal with Admin QR & UPI Integration & Sync -->
+        <!-- Deposit Modal with Admin QR & UPI Integration & Sync -->
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
             <div class="modal-title">Deposit (Min ₹100)</div>
             
+            <!-- Admin Connected QR Code & UPI Display Box -->
             <div class="deposit-qr-container">
                 <img id="admin-qr-preview" src="" alt="Scan QR to Pay" onerror="this.src='https://via.placeholder.com/140?text=QR+Not+Set'">
                 <div class="upi-display-text" id="admin-upi-text">UPI ID: Loading...</div>
@@ -793,17 +794,24 @@
             document.getElementById('display-wallet').innerText = `₹${balance.toFixed(2)}`;
         }
 
-        // Admin Panel Data Sync for Deposit QR & UPI
+                // Admin Panel Data Sync for Deposit QR & UPI
         function openDepositModal() {
-            let adminCoupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            // Using mock or fetching from general admin setting if stored
-            document.getElementById('admin-upi-text').innerText = `UPI ID: 777win@upi`;
+            let adminSettings = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {
+                upi: "777win@upi",
+                qr: ""
+            };
+
+            document.getElementById('admin-upi-text').innerText = `UPI ID: ${adminSettings.upi}`;
+            const qrImg = document.getElementById('admin-qr-preview');
+            if (adminSettings.qr) {
+                qrImg.src = adminSettings.qr;
+            } else {
+                qrImg.src = '';
+            }
+
             openModal('deposit-modal');
         }
 
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
