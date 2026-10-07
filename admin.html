@@ -3,438 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Admin Panel - 777WIN</title>
+    <title>777WIN - Admin Command Center</title>
     <style>
-        :root {
-            --bg-main: #070b19;
-            --bg-card: #0f172a;
-            --accent-gold: #d4af37;
-            --text-white: #ffffff;
-            --text-gray: #94a3b8;
-        }
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-white);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
-        /* Matrix Code Layers Background Effect */
-        canvas#matrix-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            opacity: 0.15;
-        }
-        /* Security Lock Screen */
-        #auth-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 20px;
-        }
-        .auth-card {
-            background-color: var(--bg-card);
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            padding: 30px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-            text-align: center;
-        }
-        .auth-card h2 {
-            color: var(--accent-gold);
-            margin-bottom: 10px;
-        }
-        .auth-card p {
-            color: var(--text-gray);
-            font-size: 13px;
-            margin-bottom: 20px;
-        }
-        .auth-card input {
-            width: 100%;
-            padding: 12px;
-            background: #020617;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 8px;
-            color: var(--text-white);
-            font-size: 16px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-            outline: none;
-        }
-        .auth-card button {
-            width: 100%;
-            background: linear-gradient(135deg, #d4af37, #aa7c11);
-            color: #000;
-            border: none;
-            padding: 12px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        /* Main Admin Dashboard (Hidden initially) */
-        #admin-dashboard {
-            display: none;
-            padding: 20px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-        .header h1 {
-            color: var(--accent-gold);
-            font-size: 24px;
-            margin: 0;
-        }
-        .logout-btn {
-            background: #b91c1c;
-            color: #fff;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .section-box {
-            background-color: var(--bg-card);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .section-box h3 {
-            color: var(--accent-gold);
-            margin-top: 0;
-            border-bottom: 1px solid #1e293b;
-            padding-bottom: 8px;
-        }
-        .form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        .form-row input, .form-row select {
-            flex: 1;
-            padding: 10px;
-            background: #020617;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 6px;
-            color: var(--text-white);
-            outline: none;
-        }
-        .btn-primary {
-            background: var(--accent-gold);
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        th, td {
-            border: 1px solid #1e293b;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            color: var(--accent-gold);
-            background: #020617;
-        }
-        .action-link {
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            border: none;
-        }
-        .btn-approve { background: #22c55e; color: #fff; }
-        .btn-reject { background: #ef4444; color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0b0f19; color: #f3f4f6; padding: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 20px; }
+        .header h1 { font-size: 1.2rem; color: #f59e0b; }
+        .lock-btn { background: #dc2626; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .card h2 { font-size: 1rem; margin-bottom: 15px; color: #38bdf8; border-bottom: 1px solid #30363d; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #9ca3af; }
+        input, select, textarea { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 0.9rem; }
+        .btn { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-green { background: #16a34a; }
+        .btn-red { background: #dc2626; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; width: auto; display: inline-block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
+        th { color: #9ca3af; background: #0d1117; }
+        .add-icon-btn { background: #38bdf8; color: #0b0f19; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: #161b22; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; border: 1px solid #30363d; }
     </style>
 </head>
 <body>
 
-    <!-- Matrix Code Background Canvas -->
-    <canvas id="matrix-bg"></canvas>
+    <div class="header">
+        <h1>777WIN // ADMIN CENTER</h1>
+        <button class="lock-btn" onclick="lockTerminal()">Lock Terminal</button>
+    </div>
 
-    <!-- Secure Login / Authentication Screen -->
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h2>🔒 SECURE ACCESS</h2>
-            <p>High-Tech Encrypted Admin Terminal</p>
-            <input type="password" id="master-pass" placeholder="Enter Master Password">
-            <button onclick="verifySecurityAccess()">Authenticate</button>
-            <div id="auth-error" style="color: #ef4444; font-size: 13px; margin-top: 10px;"></div>
+    <!-- 1. Generate Coupon Code -->
+    <div class="card">
+        <h2>Generate Coupon Code</h2>
+        <div class="form-group">
+            <label>Coupon Code</label>
+            <input type="text" id="couponCode" placeholder="e.g. WIN999">
+        </div>
+        <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" id="couponAmount" placeholder="e.g. 100">
+        </div>
+        <button class="btn" onclick="generateCoupon()">Create Coupon</button>
+        <div style="margin-top: 15px;">
+            <label>Active Coupons List</label>
+            <table>
+                <thead><tr><th>Code</th><th>Amount</th><th>Action</th></tr></thead>
+                <tbody id="adminCouponTable"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Main Admin Panel Dashboard -->
-    <div id="admin-dashboard">
-        <div class="header">
-            <h1>777WIN // ADMIN COMMAND CENTER</h1>
-            <button class="logout-btn" onclick="secureLogout()">Lock Terminal</button>
-        </div>
+    <!-- 2. Create Platform Bonus -->
+    <div class="card">
+        <h2>Create Platform Bonus <button class="add-icon-btn" onclick="openBonusModal()">+</button></h2>
+        <table>
+            <thead><tr><th>Title</th><th>Condition</th><th>Amount</th><th>Action</th></tr></thead>
+            <tbody id="adminBonusTable"></tbody>
+        </table>
+    </div>
 
-        <!-- 1. Coupons Management -->
-        <div class="section-box">
-            <h3>Generate Coupon Code</h3>
-            <div class="form-row">
-                <input type="text" id="coupon-code" placeholder="Code (e.g. WIN999)">
-                <input type="number" id="coupon-amount" placeholder="Amount (₹)">
-                <button class="btn-primary" onclick="createCoupon()">Create</button>
-            </div>
-        </div>
+    <!-- 3. Pending Deposit / Withdrawal Requests -->
+    <div class="card">
+        <h2>Pending Deposit / Withdrawal Requests</h2>
+        <table>
+            <thead><tr><th>User</th><th>Type</th><th>Details</th><th>Action</th></tr></thead>
+            <tbody id="adminRequestsTable"></tbody>
+        </table>
+    </div>
 
-        <!-- 2. Bonuses Management -->
-        <div class="section-box">
-            <h3>Create Platform Bonus</h3>
-            <div class="form-row">
-                <input type="text" id="bonus-title" placeholder="Bonus Title">
-                <input type="text" id="bonus-desc" placeholder="Description (e.g. Deposit 10 times)">
-                <input type="number" id="bonus-amount" placeholder="Amount (₹)">
-                <input type="number" id="bonus-target" placeholder="Target Count (e.g. 10)">
-                <button class="btn-primary" onclick="createBonus()">Add Bonus</button>
-            </div>
-        </div>
+    <!-- 4. Games Backend Controller -->
+    <div class="card">
+        <h2>Games Multiplier Controller <button class="add-icon-btn" onclick="openGameModal()">+</button></h2>
+        <table>
+            <thead><tr><th>Game Name</th><th>Control Value</th><th>Action</th></tr></thead>
+            <tbody id="adminGamesTable"></tbody>
+        </table>
+    </div>
 
-        <!-- 3. Deposit & Withdrawal Requests -->
-        <div class="section-box">
-            <h3>Pending Deposit / Withdrawal Requests</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Type</th>
-                        <th>Details/Amount</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="requests-table-body">
-                    <!-- Loaded dynamically -->
-                </tbody>
-            </table>
+    <!-- Modal for Bonus -->
+    <div id="bonusModal" class="modal">
+        <div class="modal-content">
+            <h3>Add New Bonus</h3>
+            <div class="form-group" style="margin-top:10px;"><label>Bonus Title</label><input type="text" id="bTitle"></div>
+            <div class="form-group"><label>Condition (e.g., Min Deposit 500)</label><input type="text" id="bCondition"></div>
+            <div class="form-group"><label>Bonus Amount (₹)</label><input type="number" id="bAmount"></div>
+            <button class="btn btn-green" onclick="saveBonus()">Save Bonus</button>
+            <button class="btn btn-red" onclick="closeBonusModal()" style="margin-top:5px;">Cancel</button>
         </div>
+    </div>
 
-        <!-- 4. Games Backend Controller (e.g., Aviator Multiplier) -->
-        <div class="section-box">
-            <h3>Games Backend Controller (Aviator Crash Multiplier)</h3>
-            <div class="form-row">
-                <input type="number" step="0.01" id="aviator-multiplier" placeholder="Set Max Multiplier (e.g. 2.45)">
-                <button class="btn-primary" onclick="saveGameController()">Update Multiplier</button>
-            </div>
-            <p style="font-size: 13px; color: var(--text-gray);">Current locked multiplier for next rounds will respect this setting.</p>
+    <!-- Modal for Game Control -->
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <h3>Add/Control Game</h3>
+            <div class="form-group" style="margin-top:10px;"><label>Game Name</label><input type="text" id="gName" placeholder="e.g. Aviator, Mines"></div>
+            <div class="form-group"><label>Multiplier / Control Value</label><input type="text" id="gVal" placeholder="e.g. 2.00x"></div>
+            <button class="btn btn-green" onclick="saveGame()">Update Game</button>
+            <button class="btn btn-red" onclick="closeGameModal()" style="margin-top:5px;">Cancel</button>
         </div>
     </div>
 
     <script>
-        // --- HIGH-TECH SECURITY & ACCESS LAYER ---
-        const MASTER_HASH = "777WIN_MASTER_SECURE_99#ADMIN"; // Secure Salted Representation
-        const SECRET_AUTH_PARAM = "777_SECURE_KEY_9988";
+        // Security Auth Check
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('auth') !== '777_SECURE_KEY_9988') {
+            document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;color:red;'>Access Denied! Unauthorized Entry.</h2>";
+        }
 
-        // Check URL Parameters for Secret Key Validation
+        function lockTerminal() {
+            window.location.href = 'index.html';
+        }
+
+        // Load Data on Start
         window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const authKey = urlParams.get('auth');
-
-            if (authKey !== SECRET_AUTH_PARAM) {
-                // Unauthorized access attempt -> Redirect instantly
-                window.location.href = "index.html";
-                return;
-            }
-
-            // Check if session token already exists in secure sessionStorage
-            if (sessionStorage.getItem('admin_active_session') === "true") {
-                unlockAdminPanel();
-            }
-
-            initMatrixBackground();
+            loadAdminCoupons();
+            loadAdminBonuses();
+            loadAdminRequests();
+            loadAdminGames();
         };
 
-        function verifySecurityAccess() {
-            const inputVal = document.getElementById('master-pass').value;
-            const errorBox = document.getElementById('auth-error');
-
-            if (inputVal === MASTER_HASH) {
-                sessionStorage.setItem('admin_active_session', "true");
-                unlockAdminPanel();
-            } else {
-                errorBox.innerText = "ACCESS DENIED: Invalid Security Credential!";
-                document.getElementById('master-pass').value = "";
-            }
+        // 1. Coupons Logic
+        function generateCoupon() {
+            let code = document.getElementById('couponCode').value.trim();
+            let amount = document.getElementById('couponAmount').value;
+            if(!code || !amount) return alert('Fill all fields');
+            
+            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
+            coupons.push({code, amount});
+            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
+            document.getElementById('couponCode').value = '';
+            document.getElementById('couponAmount').value = '';
+            loadAdminCoupons();
+            alert('Coupon Created Successfully!');
         }
 
-        function unlockAdminPanel() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'block';
-            loadAdminData();
-        }
-
-        function secureLogout() {
-            sessionStorage.removeItem('admin_active_session');
-            window.location.href = "index.html";
-        }
-
-        // --- MATRIX CODE LAYERS BACKGROUND ANIMATION ---
-        function initMatrixBackground() {
-            const canvas = document.getElementById('matrix-bg');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            const katakana = '01777WINABCDEFXYZ₿₹$#@%';
-            const alphabet = katakana.split('');
-            const fontSize = 14;
-            const columns = canvas.width / fontSize;
-            const rainDrops = [];
-
-            for (let x = 0; x < columns; x++) {
-                rainDrops[x] = 1;
-            }
-
-            function renderMatrix() {
-                ctx.fillStyle = 'rgba(7, 11, 25, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = '#d4af37';
-                ctx.font = fontSize + 'px monospace';
-
-                for (let i = 0; i < rainDrops.length; i++) {
-                    const text = alphabet[Math.floor(Math.random() * alphabet.length)];
-                    ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-
-                    if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                        rainDrops[i] = 0;
-                    }
-                    rainDrops[i]++;
-                }
-            }
-            setInterval(renderMatrix, 30);
-        }
-
-        // --- ADMIN PANEL LOGIC & CONTROLLER FUNCTIONS ---
-        function createCoupon() {
-            let code = document.getElementById('coupon-code').value.trim().toUpperCase();
-            let amount = parseFloat(document.getElementById('coupon-amount').value);
-
-            if (!code || !amount) {
-                alert('Please enter valid code and amount!');
-                return;
-            }
-
-            let coupons = JSON.parse(localStorage.getItem('admin_coupons')) || [];
-            coupons.push({ code: code, amount: amount, isUsed: false });
-            localStorage.setItem('admin_coupons', JSON.stringify(coupons));
-
-            alert(`Coupon ${code} created successfully!`);
-            document.getElementById('coupon-code').value = '';
-            document.getElementById('coupon-amount').value = '';
-        }
-
-        function createBonus() {
-            let title = document.getElementById('bonus-title').value.trim();
-            let desc = document.getElementById('bonus-desc').value.trim();
-            let amount = parseFloat(document.getElementById('bonus-amount').value);
-            let target = parseInt(document.getElementById('bonus-target').value) || 10;
-
-            if (!title || !desc || !amount) {
-                alert('Please fill all bonus fields!');
-                return;
-            }
-
-            let bonuses = JSON.parse(localStorage.getItem('admin_bonuses')) || [];
-            bonuses.push({ id: Date.now(), title, desc, amount, targetCount: target });
-            localStorage.setItem('admin_bonuses', JSON.stringify(bonuses));
-
-            alert('Bonus added successfully!');
-            document.getElementById('bonus-title').value = '';
-            document.getElementById('bonus-desc').value = '';
-            document.getElementById('bonus-amount').value = '';
-            document.getElementById('bonus-target').value = '';
-        }
-
-        function loadAdminData() {
-            let tbody = document.getElementById('requests-table-body');
-            tbody.innerHTML = '';
-
-            // Simulated or live history/requests db
-            let requests = JSON.parse(localStorage.getItem('admin_requests')) || [
-                { id: 1, user: "user_test", type: "Deposit", details: "₹500 (UTR: 123456)" }
-            ];
-
-            if (requests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-gray);">No pending requests</td></tr>';
-                return;
-            }
-
-            requests.forEach((req, index) => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${req.user}</td>
-                    <td>${req.type}</td>
-                    <td>${req.details}</td>
-                    <td>
-                        <button class="action-link btn-approve" onclick="handleRequest(${index}, 'approve')">Approve</button>
-                        <button class="action-link btn-reject" onclick="handleRequest(${index}, 'reject')">Reject</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+        function loadAdminCoupons() {
+            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
+            let html = '';
+            coupons.forEach((c, index) => {
+                html += `<tr><td>${c.code}</td><td>₹${c.amount}</td><td><button class="btn btn-red btn-sm" onclick="deleteCoupon(${index})">Delete</button></td></tr>`;
             });
+            document.getElementById('adminCouponTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No coupons active</td></tr>';
         }
 
-        function handleRequest(index, action) {
-            let requests = JSON.parse(localStorage.getItem('admin_requests')) || [];
-            let req = requests[index];
-            if (!req) return;
+        function deleteCoupon(index) {
+            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
+            coupons.splice(index, 1);
+            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
+            loadAdminCoupons();
+        }
 
-            if (action === 'approve') {
-                // Process wallet balance addition/deduction
-                let userDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
-                let userObj = userDb.find(u => u.username === req.user || u.email === req.user);
-                if (userObj) {
-                    // Extract amount roughly from string details
-                    userObj.balance = (parseFloat(userObj.balance) || 0) + 500;
-                    localStorage.setItem('user_backup_db', JSON.stringify(userDb));
+        // 2. Bonus Logic
+        function openBonusModal() { document.getElementById('bonusModal').style.display = 'flex'; }
+        function closeBonusModal() { document.getElementById('bonusModal').style.display = 'none'; }
+        
+        function saveBonus() {
+            let title = document.getElementById('bTitle').value;
+            let condition = document.getElementById('bCondition').value;
+            let amount = document.getElementById('bAmount').value;
+            if(!title || !condition || !amount) return alert('Fill all fields');
+
+            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
+            bonuses.push({title, condition, amount});
+            localStorage.setItem('adminBonuses', JSON.stringify(bonuses));
+            closeBonusModal();
+            loadAdminBonuses();
+        }
+
+        function loadAdminBonuses() {
+            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
+            let html = '';
+            bonuses.forEach((b, index) => {
+                html += `<tr><td>${b.title}</td><td>${b.condition}</td><td>₹${b.amount}</td><td><button class="btn btn-red btn-sm" onclick="deleteBonus(${index})">Delete</button></td></tr>`;
+            });
+            document.getElementById('adminBonusTable').innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No bonuses added</td></tr>';
+        }
+
+        function deleteBonus(index) {
+            let bonuses = JSON.parse(localStorage.getItem('adminBonuses') || '[]');
+            bonuses.splice(index, 1);
+            localStorage.setItem('adminBonuses', JSON.stringify(bonuses));
+            loadAdminBonuses();
+        }
+
+        // 3. Requests Logic (Deposit/Withdrawal)
+        function loadAdminRequests() {
+            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
+            let html = '';
+            requests.forEach((req, index) => {
+                if(req.status === 'Pending') {
+                    html += `<tr>
+                        <td>${req.user}</td>
+                        <td>${req.type}</td>
+                        <td>₹${req.amount} (${req.details})</td>
+                        <td>
+                            <button class="btn btn-green btn-sm" onclick="handleRequest(${index}, 'Approved')">Approve</button>
+                            <button class="btn btn-red btn-sm" onclick="handleRequest(${index}, 'Rejected')">Reject</button>
+                        </td>
+                    </tr>`;
                 }
-                alert('Request Approved & Wallet Updated!');
-            } else {
-                alert('Request Rejected!');
-            }
-
-            requests.splice(index, 1);
-            localStorage.setItem('admin_requests', JSON.stringify(requests));
-            loadAdminData();
+            });
+            document.getElementById('adminRequestsTable').innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No pending requests</td></tr>';
         }
 
-        function saveGameController() {
-            let multiplier = document.getElementById('aviator-multiplier').value;
-            if (!multiplier) {
-                alert('Please enter a multiplier value!');
-                return;
+        function handleRequest(index, status) {
+            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
+            let req = requests[index];
+            req.status = status;
+            
+            // If approved, update user balance & history
+            let userBalance = parseFloat(localStorage.getItem('userBalance') || '0');
+            if(status === 'Approved' && req.type === 'Deposit') {
+                userBalance += parseFloat(req.amount);
+                localStorage.setItem('userBalance', userBalance);
             }
-            localStorage.setItem('admin_game_aviator_limit', multiplier);
-            alert(`Aviator crash limit successfully locked at ${multiplier}x!`);
+            
+            let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
+            history.unshift({title: `${req.type} ${status}`, desc: `Amount: ₹${req.amount}`, time: new Date().toLocaleString()});
+            localStorage.setItem('userHistory', JSON.stringify(history));
+
+            localStorage.setItem('userRequests', JSON.stringify(requests));
+            loadAdminRequests();
+            alert(`Request ${status} successfully!`);
+        }
+
+        // 4. Games Controller Logic
+        function openGameModal() { document.getElementById('gameModal').style.display = 'flex'; }
+        function closeGameModal() { document.getElementById('gameModal').style.display = 'none'; }
+
+        function saveGame() {
+            let name = document.getElementById('gName').value;
+            let val = document.getElementById('gVal').value;
+            if(!name || !val) return alert('Fill all fields');
+
+            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
+            games.push({name, val});
+            localStorage.setItem('adminGames', JSON.stringify(games));
+            closeGameModal();
+            loadAdminGames();
+        }
+
+        function loadAdminGames() {
+            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
+            let html = '';
+            games.forEach((g, index) => {
+                html += `<tr><td>${g.name}</td><td>${g.val}</td><td><button class="btn btn-red btn-sm" onclick="deleteGame(${index})">Delete</button></td></tr>`;
+            });
+            document.getElementById('adminGamesTable').innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No active game controllers</td></tr>';
+        }
+
+        function deleteGame(index) {
+            let games = JSON.parse(localStorage.getItem('adminGames') || '[]');
+            games.splice(index, 1);
+            localStorage.setItem('adminGames', JSON.stringify(games));
+            loadAdminGames();
         }
     </script>
 </body>

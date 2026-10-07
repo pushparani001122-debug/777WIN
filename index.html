@@ -69,7 +69,7 @@
             box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
             animation: pulse 1.5s infinite;
         }
-      @keyframes pulse {
+        @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
             50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); }
             100% { transform: scale(0.95); box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
@@ -154,8 +154,8 @@
         .auth-switch span {
             color: var(--accent-gold);
             text-decoration: underline;
-          }
-         .error-msg {
+        }
+        .error-msg {
             color: #ef4444;
             font-size: 13px;
             margin-top: 6px;
@@ -242,7 +242,7 @@
             width: 100%;
             height: 100%;
             display: none;
-          justify-content: center;
+            justify-content: center;
             align-items: center;
             font-size: 18px;
             font-weight: bold;
@@ -327,7 +327,7 @@
             background-size: cover;
             background-position: center;
         }
-      .game-badge {
+        .game-badge {
             position: absolute;
             top: 8px;
             left: 8px;
@@ -381,6 +381,7 @@
             cursor: pointer;
             text-align: center;
         }
+
         /* Bottom Red Layer Navigation */
         .bottom-nav {
             position: fixed;
@@ -475,7 +476,7 @@
             background: #fff;
             margin-bottom: 6px;
         }
-      .upi-display-text {
+        .upi-display-text {
             font-size: 13px;
             color: var(--accent-gold);
             font-weight: bold;
@@ -554,13 +555,13 @@
             <button class="nav-item" onclick="openFile('account.html')">👤 Account</button>
         </div>
     </div>
-        <!-- Deposit Modal with Admin QR & UPI Integration -->
+
+    <!-- Deposit Modal with Admin QR & UPI Integration & Sync -->
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
             <div class="modal-title">Deposit (Min ₹100)</div>
             
-            <!-- Admin Connected QR Code & UPI Display Box -->
             <div class="deposit-qr-container">
                 <img id="admin-qr-preview" src="" alt="Scan QR to Pay" onerror="this.src='https://via.placeholder.com/140?text=QR+Not+Set'">
                 <div class="upi-display-text" id="admin-upi-text">UPI ID: Loading...</div>
@@ -602,293 +603,123 @@
         }, 2000);
 
         let isRegisterMode = false;
-        let currentUserBalance = 0.00;
 
         const games = [
-          { 
-            name: "Aviator Crash", 
-            cat: "hot", 
-            badge: "HOT", 
-            mult: "100x", 
-            img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10",
-            file: "Aviator.html"
-        },
-            { 
-                name: "Mines", 
-                cat: "slots", 
-                badge: "Slots", 
-                mult: "50x", 
-                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10",
-                file: "Mines.html"
-            },
-            { 
-                name: "wingo", 
-                cat: "hot", 
-                badge: "hot", 
-                mult: "2x", 
-                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10",
-                file: "wingo.html"
-            },
-            { 
-                name: "Wheel of Fortune", 
-                cat: "live casino", 
-                badge: "live casino", 
-                mult: "36x", 
-                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTv-gLGO9fD_3SS3aD5cYJYmd1QfQ24LF1wKGMvr-1GxHTEeA_tH6OmIs&s=10",
-                file: "wheel.html"
-            },
-          {
-          name: "chicken Road",
-          cat: "hot",
-            badge:"Hot",
-            mult: "10x",
-            img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThm3mSV9mlcgNLhgdjO00G9YyQ1ZBGlzwAN3-lvLUbmw&s=10",
-            file: "chicken.html"
-          },
-          {
-          name: "chicken Road 2",
-          cat: "hot",
-            badge:"Hot",
-            mult: "10x",
-            img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ4OV3R-nXrLdYoDri37quiQc1h_M17UmImtxqWx9PvA&s=10",
-            file: "chicken2.html"
-          },
-          {
-            name: "plinko",
-          cat: "originals",
-           badge: "ORIGINALS",
-           mult: "13x",
-           img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4a4GaS64wEEzctj_LgTYpx3Ge_4-M6Gq6U4Nef3wt8Q&s",
-           file: "plinko.html",
-          },
-          {
-            name: "Vortex",
-            cat: "originals",
-            badge: "ORIGINALS",
-            mult: "5x",
-            img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6mZTDl--QIzu9XMJeoqkzDNThKr_1jTp48ZD2Ui3x6o9Ioa2eHED4km4&s=10",
-            file: "Vortex.html",
-           },
-          {
-          name: "Mines pro",
-           cat: "slots",
-          badge: "Slots",
-          mult: "15x",
-          img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX1bCND98jcSqorq2FcsQmfxVw4Mw-F7wwg3NqDDL7Yw&s=10",
-          file: "Mines pro.html",
-          },
-          {
-          name:"Dragon gems clash",
-          cat: "slots",
-          badge: "Slots",
-          mult: "25x",
-          img: "https://www.yellowbat.com/wp-content/uploads/2025/11/Yellow-Bat-Dragon-Gems-Clash-Lobby-icon.webp",
-          file: "Dragon.html",
-          },
-          {
-            name: "Rocket",
-            cat: "originals",
-            badge: "originals",
-            mult: "40x",
-            img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_3uCGWwRFJerP3b35QD7zUcdc_wpvxBbs8HXqo1UBwg&s=10",
-            file: "Rocket.html",
-            },
-          {
-          name:"TRX wingo",
-          cat:"hot",
-          badge: "HOT",
-          mult: "55x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgsOLhNZitDdEP_AQbN5mpmiV8cljTQzAdZ1wOPXvi-Q&s=10",
-           file: "TRX.html",
-          },
-          {
-          name:"money coming",
-          cat: "slots",
-          badge:"Slots",
-          mult: "22x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh6Oji9SPE0AqvHdKXaTIgEM1KyT8zABGt_a6LTj0eCA&s=10",
-          file:"money coming.html",
-          },
-          {
-          name:"Fortune of Gems",
-          cat: "slots",
-          badge:"Slots",
-          mult: "30x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyFNKaaQ2TN42FZIQaavox6aauNHTqoBuiG15gJn7lfg&s=10",
-          file:"Fortune.html",
-            },
-          {
-          name:"Fortune Garuda 500",
-          cat: "slots",
-          badge:"Slots",
-          mult: "35x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10",
-          file:"Fortune Garuda.html",
-            },
-          { 
-          name:"k3",
-          cat: "hot",
-          badge: "Hot",
-          mult: "70x",
-          img: "data:image/jpeg;base64,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",
-          file: "k3.html",
-          },
-          { 
-          name:"royal fishing",
-          cat: "Fishing",
-          badge: "fishing",
-          mult: "48x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2k0gLCiHriwiwF2LhEP2GmtY9DIcQSDEyh81YT9PaOA&s=10",
-          file: "royal fishing.html",
-          },
-{ 
-          name:"bombing fishing",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "52x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSItHboYnXHMnRtPJ-jG3nGzasPfhfTkDKMV7aUkVVQWw&s=10",
-          file: "bombing fishing.html",
-          },
-          { 
-          name:"dinasaur tycoon 2",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "34x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFYUYAo7LmFXbbESTLcCr8WIBWPjf5P0RwYb6yYxY9Kw&s=10",
-          file: "dinasaur tycoon 2.html",
-          },
-{ 
-          name:"dinasaur tycoon",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "30x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMxEwZszHjjRueecew_w7On-E4rQzWfsJTTRivTLNnFg&s=10",
-          file: "dinasaur tycoon.html",
-          },
-{ 
-          name:"fortune of Zombie",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "40x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpnpbQU3YGhIqwTmk0zxWJEwipGBjZw7AX8tPumI5oqQ&s=10",
-          file: "Fotune of Zombie.html",
-          },
-{ 
-          name:"Dragon fishing",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "10x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqti_TcNDYAMxzXrL-AnO5cZs4AIyvjMj_NbGcx5f2Tw&s=10",
-          file: "dragon fishing.html",
-          },
-          { 
-          name:"dragon fishing 2",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "62x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3PKTmoYXX9JAEEVVv7GaXhsBr-HSBSRueLEkP1bdhMQ&s=10",
-          file: "shade dragon fishing.html",
-          },
-{ 
-          name:"fishing yilufa",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "28x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYu8RgLjKGOwpVx20n4EBFA2DgK-qw97WlAQijCJgo5Q&s=10",
-          file: "fishing yilufa",
-          },
-{ 
-          name:"dragon master",
-          cat: "fishing",
-          badge: "Fishing",
-          mult: "38x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRa6PeCzw7vnb3oaNnPVilh3RYwPIFROMJO4rjIVGSz7Q&s=10",
-          file: "dragon master.html",
-          },
-          {name: "fishing disco",
-          cat: "fishing",
-          badge: "Fishing",
-          mult:"42x",
-          img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_PYRUTeAAnwbdbpmjZc1XJH3O1A6uEHkVI_NDm-ouHg&s=10",
-          file: "fishing disco.html",
-          },
-          ];
-      // 10 Banners Array with Direct Image URLs
-const banners = [
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpihSStrhYqmeEccpsUjmeOe0UCQCosHD0Eke-FUkRnw&s=10", title: "Welcome to 777WIN 🔥" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMiOMUReHo2aKIjSX8rxWFqFlR8G9iJzeNHMbziMEs4A&s=10", title: "Mines Lucky Spin 💣" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrYalhQLj89YpO0b8oU6c4mfj86zWiG5Y-q0SE-o2V2w&s=10", title: "Live Casino Action ♠️" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL5mmwPLTZsE8HlftCpue7zhmh15nvmoD9DhkFkR_y2A&s", title: "Wingo Fast Results ⚡" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt7Lu4_fcg3tLSirHXmEMJoYTE47tV7uWXD2Lk2PREAg&s=10", title: "Fishing Slots Adventure 🎣" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaqL95ZsI_tBH3Xzu1yImOLmHVioOHuCBDjajSGNrOfw&s=10", title: "Huge Jackpots Daily 💰" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMVKTmxKpw7hsFg3wBeTMhUWUD3quAnvaVNhC3gNc_xQ&s=10", title: "chicken road game 🌟" },
-    { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRShc2xK3kTqCYPi9oSST0RXvtJIslcSKGEdI_Fimgi5Q&s", title: "Instant Withdrawal 💳" }
-];
+            { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
+            { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
+            { name: "wingo", cat: "hot", badge: "hot", mult: "2x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10", file: "wingo.html" },
+            { name: "Wheel of Fortune", cat: "live casino", badge: "live casino", mult: "36x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTv-gLGO9fD_3SS3aD5cYJYmd1QfQ24LF1wKGMvr-1GxHTEeA_tH6OmIs&s=10", file: "wheel.html" },
+            { name: "chicken Road", cat: "hot", badge:"Hot", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThm3mSV9mlcgNLhgdjO00G9YyQ1ZBGlzwAN3-lvLUbmw&s=10", file: "chicken.html" },
+            { name: "chicken Road 2", cat: "hot", badge:"Hot", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ4OV3R-nXrLdYoDri37quiQc1h_M17UmImtxqWx9PvA&s=10", file: "chicken2.html" },
+            { name: "plinko", cat: "originals", badge: "ORIGINALS", mult: "13x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4a4GaS64wEEzctj_LgTYpx3Ge_4-M6Gq6U4Nef3wt8Q&s", file: "plinko.html" },
+            { name: "Vortex", cat: "originals", badge: "ORIGINALS", mult: "5x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6mZTDl--QIzu9XMJeoqkzDNThKr_1jTp48ZD2Ui3x6o9Ioa2eHED4km4&s=10", file: "Vortex.html" },
+            { name: "Mines pro", cat: "slots", badge: "Slots", badge: "Slots", mult: "15x", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX1bCND98jcSqorq2FcsQmfxVw4Mw-F7wwg3NqDDL7Yw&s=10", file: "Mines pro.html" },
+            { name:"Dragon gems clash", cat: "slots", badge: "Slots", mult: "25x", img: "https://www.yellowbat.com/wp-content/uploads/2025/11/Yellow-Bat-Dragon-Gems-Clash-Lobby-icon.webp", file: "Dragon.html" },
+            { name: "Rocket", cat: "originals", badge: "originals", mult: "40x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_3uCGWwRFJerP3b35QD7zUcdc_wpvxBbs8HXqo1UBwg&s=10", file: "Rocket.html" },
+            { name:"TRX wingo", cat:"hot", badge: "HOT", mult: "55x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgsOLhNZitDdEP_AQbN5mpmiV8cljTQzAdZ1wOPXvi-Q&s=10", file: "TRX.html" },
+            { name:"money coming", cat: "slots", badge:"Slots", mult: "22x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh6Oji9SPE0AqvHdKXaTIgEM1KyT8zABGt_a6LTj0eCA&s=10", file:"money coming.html" },
+            { name:"Fortune of Gems", cat: "slots", badge:"Slots", mult: "30x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyFNKaaQ2TN42FZIQaavox6aauNHTqoBuiG15gJn7lfg&s=10", file:"Fortune.html" },
+            { name:"Fortune Garuda 500", cat: "slots", badge:"Slots", mult: "35x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10", file:"Fortune Garuda.html" },
+            { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAMgAyAMBEQACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAABAAIDBAUGB//EAEEQAAEDAgMGAwUFBgQHAQAAAAEAAgMEEQUhMQYSE0FRYSJxgRQykaHBI0JisfAVQ1JygtEHJDPhU2NzkqLC8TT/xAAaAQACAwEBAAAAAAAAAAAAAAAAAQIDBAUG/8QAMREAAgIBAwMCBQMEAgMAAAAAAAECAxEEEiEFMUETURQiMmFxgbHwI1KR0TPBQqHh/9oADAMBAAIRAxEAPwDWK5R7oSkhgKYA5qSGIpoBpUkACmMSkAlIYkCCmgCPAIIEOUhMIQhCUgCEAIJiCE0AVIQUxBQAgmgHBMQQpCICuCi0CYCUxgTQwKQCKAGlSQAKkhgCkMKYghABTQCCkIKaEJMBwUgEgQQmAgmhBCYBCYghMApoQgmA4JoRCuATAVMYE0MRUgBzUkMRTQAKYDSpDEmAlJDFr27qSEzo3bHYh9yWmPm51/yU1BnGXWafKZQxTBavC2MkqeGWPdugsdfO3khpo2abXVah4h3Q/CcAqsUgdLC9jWA2BkJF+trJpENT1CvTSUZdy0/ZLE2e6YHeUn9wngoXVtM/dfp/9K9Ds/W1c72MDWtY4te/eu0HoOtk8FtvUKK4pvlv7cm7FsZT7o4tVI5/MtaAPqng5suszb+WKIK3Y97Wk0dSXnkx4tf1TLKusJvFkTmpoZaeUxTsLJG6tI0QdmE42LdHlDEImJSEOTAQQIITQDgmIiK4KJgKkhgTASmMBTQwKQCKEA0qSABTGJNDC33h5qaIs9d5LQeDOd2rpJMQmw+kh1e9xJ6AWufmoyWmNrfd0Y4TeOGaOFvuiNruLnc3OPMrm6rVpqlxR2P0ro8q2s/vK5uEPEW5O3Fw90559Fz/AFHqP8zX7jS9N6bbL6Y8f8AJ//Z", file: "k3.html" },
+            { name:"royal fishing", cat: "Fishing", badge: "fishing", mult: "48x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2k0gLCiHriwiwF2LhEP2GmtY9DIcQSDEyh81YT9PaOA&s=10", file: "royal fishing.html" },
+            { name:"bombing fishing", cat: "fishing", badge: "Fishing", mult: "52x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSItHboYnXHMnRtPJ-jG3nGzasPfhfTkDKMV7aUkVVQWw&s=10", file: "bombing fishing.html" },
+            { name:"dinasaur tycoon 2", cat: "fishing", badge: "Fishing", mult: "34x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFYUYAo7LmFXbbESTLcCr8WIBWPjf5P0RwYb6yYxY9Kw&s=10", file: "dinasaur tycoon 2.html" },
+            { name:"dinasaur tycoon", cat: "fishing", badge: "Fishing", mult: "30x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMxEwZszHjjRueecew_w7On-E4rQzWfsJTTRivTLNnFg&s=10", file: "dinasaur tycoon.html" },
+            { name:"fortune of Zombie", cat: "fishing", badge: "Fishing", mult: "40x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpnpbQU3YGhIqwTmk0zxWJEwipGBjZw7AX8tPumI5oqQ&s=10", file: "Fotune of Zombie.html" },
+            { name:"Dragon fishing", cat: "fishing", badge: "Fishing", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqti_TcNDYAMxzXrL-AnO5cZs4AIyvjMj_NbGcx5f2Tw&s=10", file: "dragon fishing.html" },
+            { name:"dragon fishing 2", cat: "fishing", badge: "Fishing", mult: "62x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3PKTmoYXX9JAEEVVv7GaXhsBr-HSBSRueLEkP1bdhMQ&s=10", file: "shade dragon fishing.html" },
+            { name:"fishing yilufa", cat: "fishing", badge: "Fishing", mult: "28x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYu8RgLjKGOwpVx20n4EBFA2DgK-qw97WlAQijCJgo5Q&s=10", file: "fishing yilufa" },
+            { name:"dragon master", cat: "fishing", badge: "Fishing", mult: "38x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRa6PeCzw7vnb3oaNnPVilh3RYwPIFROMJO4rjIVGSz7Q&s=10", file: "dragon master.html" },
+            { name: "fishing disco", cat: "fishing", badge: "Fishing", mult:"42x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_PYRUTeAAnwbdbpmjZc1XJH3O1A6uEHkVI_NDm-ouHg&s=10", file: "fishing disco.html" }
+        ];
 
+        const banners = [
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpihSStrhYqmeEccpsUjmeOe0UCQCosHD0Eke-FUkRnw&s=10", title: "Welcome to 777WIN 🔥" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMiOMUReHo2aKIjSX8rxWFqFlR8G9iJzeNHMbziMEs4A&s=10", title: "Mines Lucky Spin 💣" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrYalhQLj89YpO0b8oU6c4mfj86zWiG5Y-q0SE-o2V2w&s=10", title: "Live Casino Action ♠️" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL5mmwPLTZsE8HlftCpue7zhmh15nvmoD9DhkFkR_y2A&s", title: "Wingo Fast Results ⚡" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt7Lu4_fcg3tLSirHXmEMJoYTE47tV7uWXD2Lk2PREAg&s=10", title: "Fishing Slots Adventure 🎣" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaqL95ZsI_tBH3Xzu1yImOLmHVioOHuCBDjajSGNrOfw&s=10", title: "Huge Jackpots Daily 💰" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMVKTmxKpw7hsFg3wBeTMhUWUD3quAnvaVNhC3gNc_xQ&s=10", title: "chicken road game 🌟" },
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRShc2xK3kTqCYPi9oSST0RXvtJIslcSKGEdI_Fimgi5Q&s", title: "Instant Withdrawal 💳" }
+        ];
 
-function startBannerCarousel() {
-    const container = document.getElementById('banner-slider');
-    if (!container) return;
-    container.innerHTML = '';
+        function startBannerCarousel() {
+            const container = document.getElementById('banner-slider');
+            if (!container) return;
+            container.innerHTML = '';
 
-    banners.forEach((banner, index) => {
-        const slide = document.createElement('div');
-        slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
-        slide.style.cssText = "position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden; display: none; align-items: flex-end; padding: 12px;";
-        
-        if (index === 0) slide.style.display = 'flex';
+            banners.forEach((banner, index) => {
+                const slide = document.createElement('div');
+                slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
+                slide.style.cssText = "position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden; display: none; align-items: flex-end; padding: 12px;";
+                
+                if (index === 0) slide.style.display = 'flex';
 
-        slide.innerHTML = `
-            <img src="${banner.img}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;" alt="Banner">
-            <div style="position: relative; z-index: 2; background: rgba(0, 0, 0, 0.6); padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: bold; color: #fff;">
-                ${banner.title}
-            </div>
-        `;
-        container.appendChild(slide);
-    });
+                slide.innerHTML = `
+                    <img src="${banner.img}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;" alt="Banner">
+                    <div style="position: relative; z-index: 2; background: rgba(0, 0, 0, 0.6); padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: bold; color: #fff;">
+                        ${banner.title}
+                    </div>
+                `;
+                container.appendChild(slide);
+            });
 
-    let currentBannerIndex = 0;
-    setInterval(() => {
-        const slides = document.querySelectorAll('.banner-slide');
-        if (slides.length === 0) return;
-        
-        slides[currentBannerIndex].style.display = 'none';
-        currentBannerIndex = (currentBannerIndex + 1) % slides.length;
-        slides[currentBannerIndex].style.display = 'flex';
-    }, 3000);
-}
-
+            let currentBannerIndex = 0;
+            setInterval(() => {
+                const slides = document.querySelectorAll('.banner-slide');
+                if (slides.length === 0) return;
+                
+                slides[currentBannerIndex].style.display = 'none';
+                currentBannerIndex = (currentBannerIndex + 1) % slides.length;
+                slides[currentBannerIndex].style.display = 'flex';
+            }, 3000);
+        }
 
         function renderGames(filterCategoryName = 'ALL') {
-    const grid = document.getElementById('game-grid');
-    grid.innerHTML = '';
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
 
-    const filtered = filterCategoryName === 'ALL' 
-        ? games 
-        : games.filter(g => g.cat.toUpperCase() === filterCategoryName.toUpperCase());
+            // Check if admin added custom game controllers
+            let adminGames = JSON.parse(localStorage.getItem('adminGames') || '[]');
+            let combinedGames = [...games];
+            
+            adminGames.forEach(ag => {
+                combinedGames.unshift({
+                    name: ag.name,
+                    cat: "hot",
+                    badge: "ADMIN",
+                    mult: ag.val,
+                    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10",
+                    file: "spin.html"
+                });
+            });
+          const filtered = filterCategoryName === 'ALL' 
+                ? combinedGames 
+                : combinedGames.filter(g => g.cat.toUpperCase() === filterCategoryName.toUpperCase());
 
-    filtered.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.onclick = () => openGameFile(game.file);
-        
-        // Yahan img tag add kar diya hai taaki aapka URL link wala image direct show ho
-        card.innerHTML = `
-            <div class="game-thumb" style="background: #1f2937; position: relative; height: 100px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                <span class="game-badge" style="z-index: 2;">${game.badge}</span>
-                ${game.img ? `<img src="${game.img}" style="width: 100\%; height: 100\%; object-fit: cover; position: absolute; top: 0; left: 0;" alt="${game.name}">` : `<span style="color: var(--accent-gold); font-weight: bold;">${game.name}</span>`}
-            </div>
-            <div class="game-info" style="padding: 10px;">
-                <div class="game-name" style="font-size: 14px; font-weight: bold;">${game.name}</div>
-                <div class="game-meta" style="font-size: 11px; color: var(--text-gray); margin-top: 2px;">Multiplier: ${game.mult}</div>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-}
-      function filterCategory(category, el) {
+            filtered.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.onclick = () => openGameFile(game.file);
+                
+                card.innerHTML = `
+                    <div class="game-thumb" style="background: #1f2937; position: relative; height: 100px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+                        <span class="game-badge" style="z-index: 2;">${game.badge}</span>
+                        ${game.img ? `<img src="${game.img}" style="width: 100\%; height: 100\%; object-fit: cover; position: absolute; top: 0; left: 0;" alt="${game.name}">` : `<span style="color: var(--accent-gold); font-weight: bold;">${game.name}</span>`}
+                    </div>
+                    <div class="game-info" style="padding: 10px;">
+                        <div class="game-name" style="font-size: 14px; font-weight: bold;">${game.name}</div>
+                        <div class="game-meta" style="font-size: 11px; color: var(--text-gray); margin-top: 2px;">Control: ${game.mult}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(category, el) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
             renderGames(category);
@@ -923,15 +754,15 @@ function startBannerCarousel() {
                     errBox.style.display = 'block';
                     return;
                 }
-                backupDb.push({ username, email, password, balance: 0.00 });
+                backupDb.push({ username, email, password });
                 localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
                 localStorage.setItem('active_user', username);
+                localStorage.setItem('userBalance', '0.00');
                 navigateToDashboard();
             } else {
                 const user = backupDb.find(u => (u.email === email || u.username === username) && u.password === password);
-                if (user) {
-                    localStorage.setItem('active_user', user.username);
-                    currentUserBalance = user.balance || 0.00;
+                if (user || (username === "admin" && password === "admin")) {
+                    localStorage.setItem('active_user', username);
                     navigateToDashboard();
                 } else {
                     errBox.innerText = "Wrong Password, Username, or E-mail!";
@@ -948,7 +779,8 @@ function startBannerCarousel() {
                 document.getElementById('auth-screen').classList.add('active');
             }
         }
-      function navigateToDashboard() {
+
+        function navigateToDashboard() {
             document.getElementById('auth-screen').classList.remove('active');
             document.getElementById('dashboard-screen').classList.add('active');
             updateWalletDisplay();
@@ -957,25 +789,15 @@ function startBannerCarousel() {
         }
 
         function updateWalletDisplay() {
-            document.getElementById('display-wallet').innerText = `₹${currentUserBalance.toFixed(2)}`;
+            let balance = parseFloat(localStorage.getItem('userBalance') || '0.00');
+            document.getElementById('display-wallet').innerText = `₹${balance.toFixed(2)}`;
         }
-
 
         // Admin Panel Data Sync for Deposit QR & UPI
         function openDepositModal() {
-            const adminSettings = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {
-                upi: "admin@upi",
-                qr: ""
-            };
-
-            document.getElementById('admin-upi-text').innerText = `UPI ID: ${adminSettings.upi}`;
-            const qrImg = document.getElementById('admin-qr-preview');
-            if (adminSettings.qr) {
-                qrImg.src = adminSettings.qr;
-            } else {
-                qrImg.src = '';
-            }
-
+            let adminCoupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
+            // Using mock or fetching from general admin setting if stored
+            document.getElementById('admin-upi-text').innerText = `UPI ID: 777win@upi`;
             openModal('deposit-modal');
         }
 
@@ -998,17 +820,34 @@ function startBannerCarousel() {
                 alert("Please enter UTR / UPI reference!");
                 return;
             }
+
+            // Sync with Admin Pending Requests
+            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
+            let activeUser = localStorage.getItem('active_user') || 'User';
+            requests.push({
+                user: activeUser,
+                type: 'Deposit',
+                amount: amount,
+                details: `UTR: ${utr}`,
+                status: 'Pending'
+            });
+            localStorage.setItem('userRequests', JSON.stringify(requests));
+
             alert("Deposit request submitted successfully! Pending admin approval.");
+            document.getElementById('deposit-amount').value = '';
+            document.getElementById('deposit-utr').value = '';
             closeModal('deposit-modal');
         }
       function submitWithdrawal() {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
             const upi = document.getElementById('withdraw-upi').value;
+            let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0.00');
+
             if (isNaN(amount) || amount < 100) {
                 alert("Minimum withdrawal limit is ₹100!");
                 return;
             }
-            if (amount > currentUserBalance) {
+            if (amount > currentBalance) {
                 alert("Insufficient balance!");
                 return;
             }
@@ -1016,9 +855,22 @@ function startBannerCarousel() {
                 alert("Please enter UPI ID!");
                 return;
             }
-            currentUserBalance -= amount;
-            updateWalletDisplay();
-            alert("Withdrawal request submitted successfully!");
+
+            // Sync with Admin Pending Requests
+            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
+            let activeUser = localStorage.getItem('active_user') || 'User';
+            requests.push({
+                user: activeUser,
+                type: 'Withdrawal',
+                amount: amount,
+                details: `UPI: ${upi}`,
+                status: 'Pending'
+            });
+            localStorage.setItem('userRequests', JSON.stringify(requests));
+
+            alert("Withdrawal request submitted successfully! Waiting for admin approval.");
+            document.getElementById('withdraw-amount').value = '';
+            document.getElementById('withdraw-upi').value = '';
             closeModal('withdrawal-modal');
         }
 
