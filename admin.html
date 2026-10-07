@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,7 +31,7 @@
         <button class="lock-btn" onclick="lockTerminal()">Lock Terminal</button>
     </div>
 
-    <!-- NEW: Deposit Payment Gateway Controller (QR & UPI) -->
+    <!-- Deposit Payment Gateway Controller (QR & UPI) -->
     <div class="card">
         <h2>Deposit QR & UPI Controller</h2>
         <div class="form-group">
@@ -81,7 +81,6 @@
             loadAdminRequests();
         };
 
-        // Save QR & UPI settings
         function savePaymentSettings() {
             let upi = document.getElementById('adminUpiInput').value.trim();
             let fileInput = document.getElementById('adminQrInput');
@@ -135,9 +134,14 @@
             req.status = status;
             
             let userBalance = parseFloat(localStorage.getItem('userBalance') || '0');
-            if(status === 'Approved' && req.type === 'Deposit') {
-                userBalance += parseFloat(req.amount);
-                localStorage.setItem('userBalance', userBalance);
+            
+            if(status === 'Approved') {
+                if(req.type === 'Deposit') {
+                    userBalance += parseFloat(req.amount);
+                } else if(req.type === 'Withdrawal') {
+                    userBalance -= parseFloat(req.amount);
+                }
+                localStorage.setItem('userBalance', userBalance.toFixed(2));
             }
             
             let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
