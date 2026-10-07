@@ -556,13 +556,12 @@
         </div>
     </div>
 
-        <!-- Deposit Modal with Admin QR & UPI Integration & Sync -->
+    <!-- Deposit Modal with Admin QR & UPI Integration -->
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
             <div class="modal-title">Deposit (Min ₹100)</div>
             
-            <!-- Admin Connected QR Code & UPI Display Box -->
             <div class="deposit-qr-container">
                 <img id="admin-qr-preview" src="" alt="Scan QR to Pay" onerror="this.src='https://via.placeholder.com/140?text=QR+Not+Set'">
                 <div class="upi-display-text" id="admin-upi-text">UPI ID: Loading...</div>
@@ -614,14 +613,14 @@
             { name: "chicken Road 2", cat: "hot", badge:"Hot", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ4OV3R-nXrLdYoDri37quiQc1h_M17UmImtxqWx9PvA&s=10", file: "chicken2.html" },
             { name: "plinko", cat: "originals", badge: "ORIGINALS", mult: "13x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4a4GaS64wEEzctj_LgTYpx3Ge_4-M6Gq6U4Nef3wt8Q&s", file: "plinko.html" },
             { name: "Vortex", cat: "originals", badge: "ORIGINALS", mult: "5x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6mZTDl--QIzu9XMJeoqkzDNThKr_1jTp48ZD2Ui3x6o9Ioa2eHED4km4&s=10", file: "Vortex.html" },
-            { name: "Mines pro", cat: "slots", badge: "Slots", badge: "Slots", mult: "15x", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX1bCND98jcSqorq2FcsQmfxVw4Mw-F7wwg3NqDDL7Yw&s=10", file: "Mines pro.html" },
+            { name: "Mines pro", cat: "slots", badge: "Slots", mult: "15x", img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRX1bCND98jcSqorq2FcsQmfxVw4Mw-F7wwg3NqDDL7Yw&s=10", file: "Mines pro.html" },
             { name:"Dragon gems clash", cat: "slots", badge: "Slots", mult: "25x", img: "https://www.yellowbat.com/wp-content/uploads/2025/11/Yellow-Bat-Dragon-Gems-Clash-Lobby-icon.webp", file: "Dragon.html" },
             { name: "Rocket", cat: "originals", badge: "originals", mult: "40x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_3uCGWwRFJerP3b35QD7zUcdc_wpvxBbs8HXqo1UBwg&s=10", file: "Rocket.html" },
             { name:"TRX wingo", cat:"hot", badge: "HOT", mult: "55x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSgsOLhNZitDdEP_AQbN5mpmiV8cljTQzAdZ1wOPXvi-Q&s=10", file: "TRX.html" },
             { name:"money coming", cat: "slots", badge:"Slots", mult: "22x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh6Oji9SPE0AqvHdKXaTIgEM1KyT8zABGt_a6LTj0eCA&s=10", file:"money coming.html" },
             { name:"Fortune of Gems", cat: "slots", badge:"Slots", mult: "30x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyFNKaaQ2TN42FZIQaavox6aauNHTqoBuiG15gJn7lfg&s=10", file:"Fortune.html" },
             { name:"Fortune Garuda 500", cat: "slots", badge:"Slots", mult: "35x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10", file:"Fortune Garuda.html" },
-            { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAMgAyAMBEQACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAABAAIDBAUGB//EAEEQAAEDAgMGAwUFBgQHAQAAAAEAAgMEEQUhMQYSE0FRYSJxgRQykaHBI0JisfAVQ1JygtEHJDPhU2NzkqLC8TT/xAAaAQACAwEBAAAAAAAAAAAAAAAAAQIDBAUG/8QAMREAAgIBAwMCBQMEAgMAAAAAAAECAxEEEiEFMUETURQiMmFxgbHwI1KR0TPBQqHh/9oADAMBAAIRAxEAPwDWK5R7oSkhgKYA5qSGIpoBpUkACmMSkAlIYkCCmgCPAIIEOUhMIQhCUgCEAIJiCE0AVIQUxBQAgmgHBMQQpCICuCi0CYCUxgTQwKQCKAGlSQAKkhgCkMKYghABTQCCkIKaEJMBwUgEgQQmAgmhBCYBCYghMApoQgmA4JoRCuATAVMYE0MRUgBzUkMRTQAKYDSpDEmAlJDFr27qSEzo3bHYh9yWmPm51/yU1BnGXWafKZQxTBavC2MkqeGWPdugsdfO3khpo2abXVah4h3Q/CcAqsUgdLC9jWA2BkJF+trJpENT1CvTSUZdy0/ZLE2e6YHeUn9wngoXVtM/dfp/9K9Ds/W1c72MDWtY4te/eu0HoOtk8FtvUKK4pvlv7cm7FsZT7o4tVI5/MtaAPqng5suszb+WKIK3Y97Wk0dSXnkx4tf1TLKusJvFkTmpoZaeUxTsLJG6tI0QdmE42LdHlDEImJSEOTAQQIITQDgmIiK4KJgKkhgTASmMBTQwKQCKEA0qSABTGJNDC33h5qaIs9d5LQeDOd2rpJMQmw+kh1e9xJ6AWufmoyWmNrfd0Y4TeOGaOFvuiNruLnc3OPMrm6rVpqlxR2P0ro8q2s/vK5uEPEW5O3Fw90559Fz/AFHqP8zX7jS9N6bbL6Y8f8AJ//Z", file: "k3.html" },
+            { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAMgAyAMBEQACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAABAAIDBAUGB//EAEEQAAEDAgMGAwUFBgQHAQAAAAEAAgMEEQUhMQYSE0FRYSJxgRQykaHBI0JisfAVQ1JygtEHJDPhU2NzkqLC8TT/xAAaAQACAwEBAAAAAAAAAAAAAAAAAQIDBAUG/8QAMREAAgIBAwMCBQMEAgMAAAAAAAECAxEEEiEFMUETURQiMmFxgbHwI1KR0TPBQqHh/9oADAMBAAIRAxEAPwDWK5R7oSkhgKYA5qSGIpoBpUkACmMSkAlIYkCCmgCPAIIEOUhMIQhCUgCEAIJiCE0AVIQUxBQAgmgHBMQQpCICuCi0CYCUxgTQwKQCKAGlSQAKkhgCkMKYghABTQCCkIKaEJMBwUgEgQQmAgmhBCYBCYghMApoQgmA4JoRCuATAVMYE0MRUgBzUkMRTQAKYDSpDEmAlJDFr27qSEzo3bHYh9yWmPm51/yU1BnGXWafKZQxTBavC2MkqeGWPdugsdfO3khpo2abXVah4h3Q/CcAqsUgdLC9jWA2BkJF+trJpENT1CvTSUZdy0/ZLE2e6YHeUn9wngoXVtM/dfp/9K9Ds/W1c72MDWtY4te/eu0HoOtk8FtvUKK4pvlv7cm7FsZT7o4tVI5/MtaAPqng5suszb+WKIK3Y97Wk0dSXnkx4tf1TLKusJvFkTmpoZsaeTsLJG6tI0QdmE42LdHlDEImJSEOTAQQIITQDgmIiK4KJgKkhgTASmMBTQwKQCKEA0qSABTGJNDC33h5qaIs9d5LQeDOd2rpJMQmw+kh1e9xJ6AWufmoyWmNrfd0Y4TeOGaOFvuiNruLnc3OPMrm6rVpqlxR2P0ro8q2s/vK5uEPEW5O3Fw90559Fz/AFHqP8zX7jS9N6bbL6Y8f8AJ//Z", file: "k3.html" },
             { name:"royal fishing", cat: "Fishing", badge: "fishing", mult: "48x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2k0gLCiHriwiwF2LhEP2GmtY9DIcQSDEyh81YT9PaOA&s=10", file: "royal fishing.html" },
             { name:"bombing fishing", cat: "fishing", badge: "Fishing", mult: "52x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSItHboYnXHMnRtPJ-jG3nGzasPfhfTkDKMV7aUkVVQWw&s=10", file: "bombing fishing.html" },
             { name:"dinasaur tycoon 2", cat: "fishing", badge: "Fishing", mult: "34x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFYUYAo7LmFXbbESTLcCr8WIBWPjf5P0RwYb6yYxY9Kw&s=10", file: "dinasaur tycoon 2.html" },
@@ -697,7 +696,7 @@
                     file: "spin.html"
                 });
             });
-          const filtered = filterCategoryName === 'ALL' 
+            const filtered = filterCategoryName === 'ALL' 
                 ? combinedGames 
                 : combinedGames.filter(g => g.cat.toUpperCase() === filterCategoryName.toUpperCase());
 
@@ -719,8 +718,7 @@
                 grid.appendChild(card);
             });
         }
-
-        function filterCategory(category, el) {
+      function filterCategory(category, el) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
             renderGames(category);
@@ -794,7 +792,16 @@
             document.getElementById('display-wallet').innerText = `₹${balance.toFixed(2)}`;
         }
 
-                // Admin Panel Data Sync for Deposit QR & UPI
+        // Modal Control Functions (Added back to fix popup issue)
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Admin Panel Data Sync for Deposit QR & UPI
         function openDepositModal() {
             let adminSettings = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {
                 upi: "777win@upi",
@@ -810,11 +817,6 @@
             }
 
             openModal('deposit-modal');
-        }
-
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
         }
 
         function submitDeposit() {
@@ -839,14 +841,15 @@
                 details: `UTR: ${utr}`,
                 status: 'Pending'
             });
-            localStorage.setItem('userRequests', JSON.stringify(requests));
+          localStorage.setItem('userRequests', JSON.stringify(requests));
 
             alert("Deposit request submitted successfully! Pending admin approval.");
             document.getElementById('deposit-amount').value = '';
             document.getElementById('deposit-utr').value = '';
             closeModal('deposit-modal');
         }
-      function submitWithdrawal() {
+
+        function submitWithdrawal() {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
             const upi = document.getElementById('withdraw-upi').value;
             let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0.00');
