@@ -1,129 +1,268 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>777WIN - Account & Wallet</title>
+    <title>777WIN - Account</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0b0f19; color: #f3f4f6; padding: 15px; padding-bottom: 70px; }
-        .header { background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 20px; text-align: center; }
-        .balance-card { background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
-        .balance-card h3 { font-size: 0.9rem; color: #93c5fd; margin-bottom: 5px; }
-        .balance-card h1 { font-size: 2rem; color: #ffffff; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
-        .card h2 { font-size: 1rem; margin-bottom: 15px; color: #38bdf8; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #9ca3af; }
-        input { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 0.9rem; }
-        .btn { background: #16a34a; color: white; border: none; padding: 10px 15px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-red { background: #dc2626; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #161b22; border-top: 1px solid #30363d; display: flex; justify-content: space-around; padding: 10px 0; }
-        .nav-item { color: #9ca3af; text-decoration: none; font-size: 0.8rem; text-align: center; }
-        .nav-item.active { color: #38bdf8; }
+        body { background: #0b0f19; color: #f3f4f6; padding-bottom: 70px; }
+        
+        /* Top Profile Banner */
+        .profile-banner {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            padding: 20px 15px;
+            position: relative;
+            border-bottom: 1px solid #30363d;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar-box {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #f59e0b;
+            background: #21262d;
+            position: relative;
+        }
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-details h3 {
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .user-details p {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        /* Top-Right Logout Button */
+        .logout-icon-btn {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid #dc2626;
+            color: #ef4444;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Wallet Section */
+        .wallet-card {
+            background: #161b22;
+            margin: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .wallet-title {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+        .wallet-balance {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        /* Quick Action Buttons Grid (Deposit, Withdrawal, Bonus, Rules) */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+        .action-btn {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .action-btn:active {
+            background: #21262d;
+        }
+        .action-btn span {
+            display: block;
+            font-size: 0.75rem;
+            color: #d1d5db;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        .action-icon {
+            font-size: 1.4rem;
+        }
+
+        /* Modal Popup for Logout Confirmation */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            width: 85%;
+            max-width: 320px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .modal-box h3 {
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .modal-box p {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+        }
+        .btn-no { background: #30363d; color: #ffffff; }
+        .btn-yes { background: #dc2626; color: #ffffff; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>My Account & Wallet</h1>
+    <!-- Profile Banner with Avatar, UID & Logout -->
+    <div class="profile-banner">
+        <div class="profile-header">
+            <div class="user-info">
+                <div class="avatar-box">
+                    <img src="https://i.imgur.com/8Km9tLL.png" alt="Avatar" id="userAvatar">
+                </div>
+                <div class="user-details">
+                    <h3 id="userName">MEMBER777</h3>
+                    <p>UID: <span id="userUid">24601419</span></p>
+                </div>
+            </div>
+            <button class="logout-icon-btn" onclick="openLogoutModal()">Logout</button>
+        </div>
     </div>
 
-    <div class="balance-card">
-        <h3>Total Balance</h3>
-        <h1 id="userWalletBalance">₹0.00</h1>
+    <!-- Wallet Balance Area -->
+    <div class="wallet-card">
+        <div class="wallet-title">Total Balance</div>
+        <div class="wallet-balance" id="accountBalance">₹0.00</div>
     </div>
 
-    <!-- Deposit Section -->
-    <div class="card">
-        <h2>Deposit Funds</h2>
-        <div class="form-group">
-            <label>Amount (₹)</label>
-            <input type="number" id="depAmount" placeholder="Enter amount">
+    <!-- 4 Direct Feature Buttons -->
+    <div class="actions-grid">
+        <div class="action-btn" onclick="openFeature('deposit')">
+            <div class="action-icon">📥</div>
+            <span>Deposit</span>
         </div>
-        <div class="form-group">
-            <label>UTR / Transaction ID</label>
-            <input type="text" id="depUtr" placeholder="Enter UTR number">
+        <div class="action-btn" onclick="openFeature('withdrawal')">
+            <div class="action-icon">📤</div>
+            <span>Withdraw</span>
         </div>
-        <button class="btn" onclick="submitDeposit()">Submit Deposit Request</button>
+        <div class="action-btn" onclick="openFeature('bonus')">
+            <div class="action-icon">🎁</div>
+            <span>Bonus</span>
+        </div>
+        <div class="action-btn" onclick="openFeature('rules')">
+            <div class="action-icon">📜</div>
+            <span>Rules</span>
+        </div>
     </div>
 
-    <!-- Withdrawal Section -->
-    <div class="card">
-        <h2>Withdrawal Funds</h2>
-        <div class="form-group">
-            <label>Amount (₹)</label>
-            <input type="number" id="withAmount" placeholder="Enter amount">
+    <!-- Logout Warning Modal -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <h3>Confirm Logout</h3>
+            <p>Do you want to logout?</p>
+            <div class="modal-btns">
+                <button class="modal-btn btn-no" onclick="closeLogoutModal()">No</button>
+                <button class="modal-btn btn-yes" onclick="confirmLogout()">Yes</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Bank / UPI Details</label>
-            <input type="text" id="withDetails" placeholder="Enter UPI ID or Bank Details">
-        </div>
-        <button class="btn btn-red" onclick="submitWithdrawal()">Submit Withdrawal Request</button>
-    </div>
-
-    <!-- Navigation Bar -->
-    <div class="nav-bar">
-        <a href="index.html" class="nav-item">Home</a>
-        <a href="spin.html" class="nav-item">Spin</a>
-        <a href="coupon.html" class="nav-item">Coupon</a>
-        <a href="bonus.html" class="nav-item">Bonus</a>
-        <a href="history.html" class="nav-item">History</a>
-        <a href="account.html" class="nav-item active">Account</a>
     </div>
 
     <script>
         window.onload = function() {
-            updateBalanceDisplay();
+            // 1. Load Live Wallet Balance from localStorage
+            let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
+            document.getElementById('accountBalance').innerText = `₹${balance}`;
+
+            // 2. Set Unique UID if not already created
+            let storedUid = localStorage.getItem('userUid');
+            if(!storedUid) {
+                storedUid = Math.floor(10000000 + Math.random() * 90000000);
+                localStorage.setItem('userUid', storedUid);
+            }
+            document.getElementById('userUid').innerText = storedUid;
         };
 
-        function updateBalanceDisplay() {
-            let balance = localStorage.getItem('userBalance') || '0.00';
-            document.getElementById('userWalletBalance').innerText = `₹${parseFloat(balance).toFixed(2)}`;
+        // Logout Modal Functions
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
         }
 
-        function submitDeposit() {
-            let amount = document.getElementById('depAmount').value;
-            let utr = document.getElementById('depUtr').value;
-            if(!amount || !utr) return alert('Please fill all deposit details');
-
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            requests.push({
-                user: 'user_' + Math.floor(Math.random()*1000),
-                type: 'Deposit',
-                amount: amount,
-                details: `UTR: ${utr}`,
-                status: 'Pending'
-            });
-            localStorage.setItem('userRequests', JSON.stringify(requests));
-
-            document.getElementById('depAmount').value = '';
-            document.getElementById('depUtr').value = '';
-            alert('Deposit request submitted successfully! Waiting for admin approval.');
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
         }
 
-        function submitWithdrawal() {
-            let amount = document.getElementById('withAmount').value;
-            let details = document.getElementById('withDetails').value;
-            let balance = parseFloat(localStorage.getItem('userBalance') || '0');
+        function confirmLogout() {
+            // Clear active session/login info if needed, then redirect to index/login
+            window.location.href = 'index.html';
+        }
 
-            if(!amount || !details) return alert('Please fill all withdrawal details');
-            if(parseFloat(amount) > balance) return alert('Insufficient balance!');
-
-            // Deduct temporarily or on approval? Let's deduct on approval or keep pending request
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            requests.push({
-                user: 'user_' + Math.floor(Math.random()*1000),
-                type: 'Withdrawal',
-                amount: amount,
-                details: `UPI: ${details}`,
-                status: 'Pending'
-            });
-            localStorage.setItem('userRequests', JSON.stringify(requests));
-
-            document.getElementById('withAmount').value = '';
-            document.getElementById('withDetails').value = '';
-            alert('Withdrawal request submitted successfully!');
+        // Direct Navigation for Buttons
+        function openFeature(type) {
+            if(type === 'deposit') {
+                // Agar aapka modal function index.html ya main page par hai ya direct redirect karna ho:
+                if(typeof openModal === 'function') {
+                    openModal('deposit');
+                } else {
+                    window.location.href = 'index.html?open=deposit';
+                }
+            } else if(type === 'withdrawal') {
+                if(typeof openModal === 'function') {
+                    openModal('withdrawal');
+                } else {
+                    window.location.href = 'index.html?open=withdrawal';
+                }
+            } else if(type === 'bonus') {
+                window.location.href = 'bonus.html'; // ya apna bonus page link karein
+            } else if(type === 'rules') {
+                window.location.href = 'rules.html'; // ya apna rules page link karein
+            }
         }
     </script>
 </body>
