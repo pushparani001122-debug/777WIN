@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -30,17 +30,11 @@
         .game-screen { background: radial-gradient(circle, #1f2937 0%, #0b0f19 100%); height: 230px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px solid #30363d; overflow: hidden; }
         .status-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 15px; font-size: 0.7rem; display: flex; align-items: center; gap: 4px; border: 1px solid #30363d; color: #d1d5db; z-index: 5; }
         
-        .multiplier-text { font-size: 3rem; font-weight: bold; color: #ffffff; z-index: 3; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+        .multiplier-text { font-size: 2.8rem; font-weight: bold; color: #ffffff; z-index: 3; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+        .waiting-sub-text { font-size: 0.85rem; color: #9ca3af; margin-top: 4px; z-index: 3; letter-spacing: 0.5px; font-weight: 600; }
         
         /* Canvas for Red Plane and Growing Curve */
         #gameCanvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
-
-        /* Admin Control Panel Box */
-        .admin-box { background: #161b22; margin: 10px; padding: 12px; border-radius: 10px; border: 1px solid #e11d48; }
-        .admin-title { font-size: 0.9rem; font-weight: bold; color: #e11d48; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .admin-row { display: flex; gap: 8px; }
-        .admin-input { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: white; padding: 6px 10px; flex: 1; font-size: 0.85rem; outline: none; }
-        .admin-btn { background: #e11d48; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
 
         /* Double Betting Cards */
         .bet-card { background: #161b22; margin: 10px; padding: 12px; border-radius: 10px; border: 1px solid #30363d; }
@@ -108,20 +102,11 @@
     <!-- Game Screen with Red Plane Graphic & Curve Animation -->
     <div class="game-screen" id="gameScreenBox">
         <div class="status-badge">👥 <span id="onlineCount">245</span></div>
-        <div class="multiplier-text" id="multiplierDisplay">1.00x</div>
+        <div style="text-align: center;">
+            <div class="multiplier-text" id="multiplierDisplay">1.00x</div>
+            <div class="waiting-sub-text" id="waitingSubText">Waiting for next round...</div>
+        </div>
         <canvas id="gameCanvas"></canvas>
-    </div>
-
-    <!-- Admin Game Result Controller Box -->
-    <div class="admin-box">
-        <div class="admin-title">
-            <span>⚙️ Admin Game Result Controller</span>
-            <span id="adminStatusMsg" style="font-size: 0.75rem; color: #22c55e;"></span>
-        </div>
-        <div class="admin-row">
-            <input type="number" id="adminMultiplierInput" class="admin-input" placeholder="e.g. 2.50 (Leave empty for 1.00x crash)">
-            <button class="admin-btn" onclick="saveAdminMultiplier()">Set Result</button>
-        </div>
     </div>
 
     <!-- Betting Panel 1 -->
@@ -216,25 +201,8 @@
 
         window.onload = function() {
             updateWalletUI();
-            let savedAdminVal = localStorage.getItem('adminNextMultiplier');
-            if(savedAdminVal) {
-                document.getElementById('adminMultiplierInput').value = savedAdminVal;
-            }
             startWaitingPhase();
         };
-
-        function saveAdminMultiplier() {
-            let val = document.getElementById('adminMultiplierInput').value.trim();
-            let msg = document.getElementById('adminStatusMsg');
-            if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
-                localStorage.removeItem('adminNextMultiplier');
-                msg.innerText = "Saved: Default (1.00x)";
-            } else {
-                localStorage.setItem('adminNextMultiplier', val);
-                msg.innerText = `Saved: ${val}x`;
-            }
-            setTimeout(() => { msg.innerText = ""; }, 3000);
-        }
 
         function updateWalletUI() {
             localStorage.setItem('userBalance', balance.toFixed(2));
@@ -356,6 +324,7 @@
             currentMultiplier = 1.00;
             document.getElementById('multiplierDisplay').innerText = "1.00x";
             document.getElementById('multiplierDisplay').style.color = "#ffffff";
+            document.getElementById('waitingSubText').style.display = "block";
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -388,12 +357,12 @@
 
         function startFlyingPhase() {
             gameState = 'flying';
+            document.getElementById('waitingSubText').style.display = "none";
 
             let adminVal = localStorage.getItem('adminNextMultiplier');
             if (adminVal && !isNaN(adminVal) && parseFloat(adminVal) > 0) {
                 targetCrashMultiplier = parseFloat(adminVal);
                 localStorage.removeItem('adminNextMultiplier');
-                document.getElementById('adminMultiplierInput').value = "";
             } else {
                 targetCrashMultiplier = 1.00; 
             }
@@ -406,6 +375,54 @@
                 if (state === 'placed') {
                     if (id === '1') panelState1 = 'cashout_ready';
                     if (id === '2') panelState2 = 'cashout_ready';
+                    btn.style.background = '#f59e0b';
+                    title.innerText = 'Cash Out';
+                }
+            });
+
+            let speed = 0.025;
+            let progress = 0;
+
+            gameInterval = setInterval(() => {
+                currentMultiplier += speed;
+                progress += 0.01;
+                if(progress > 1) progress = 1;
+
+                document.getElementById('multiplierDisplay').innerText = currentMultiplier.toFixed(2) + 'x';
+                drawScene(progress);
+
+                ['1', '2'].forEach(id => {
+                    let state = id === '1' ? panelState1 : panelState2;
+                    if(state === 'cashout_ready') {
+                        let betAmt = parseFloat(document.getElementById('betInput' + id).value) || 10;
+                        let liveWin = betAmt * currentMultiplier;
+                        document.getElementById('btnAmtText' + id).innerText = `₹${liveWin.toFixed(2)}`;
+                    }
+                });
+
+                if (currentMultiplier >= targetCrashMultiplier) {
+                    clearInterval(gameInterval);
+                    triggerCrash();
+                }
+            }, 100);
+        }
+
+        function triggerCrash() {
+            gameState = 'crashed';
+            let display = document.getElementById('multiplierDisplay');
+            display.innerText = `${targetCrashMultiplier.toFixed(2)}x FLEW AWAY!`;
+            display.style.color = "#dc2626";
+            document.getElementById('waitingSubText').style.display = "none";
+
+            ['1', '2'].forEach(id => {
+                let state = id === '1' ? panelState1 : panelState2;
+                let btn = document.getElementById('betBtn' + id);
+              let title = document.getElementById('btnTitle' + id);
+                let subAmt = document.getElementById('btnAmtText' + id);
+
+                if (state === 'cashout_ready') {
+                    if (id === '1') panelState1 = 'idle';
+                    if (id === '2') panelState2 = 'idle';
                     btn.style.background = '#374151';
                     title.innerText = 'Lost';
                     subAmt.innerText = '0.00 INR';
