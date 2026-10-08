@@ -359,12 +359,24 @@
             gameState = 'flying';
             document.getElementById('waitingSubText').style.display = "none";
 
+            // Check admin multiplier and handle 7-times repetition logic
             let adminVal = localStorage.getItem('adminNextMultiplier');
+            let repeatCount = parseInt(localStorage.getItem('adminRepeatCount')) || 0;
+
             if (adminVal && !isNaN(adminVal) && parseFloat(adminVal) > 0) {
                 targetCrashMultiplier = parseFloat(adminVal);
-                localStorage.removeItem('adminNextMultiplier');
+                repeatCount++;
+                
+                if (repeatCount >= 7) {
+                    // 7 rounds complete, clear the admin value so it defaults to 1.00x next
+                    localStorage.removeItem('adminNextMultiplier');
+                    localStorage.removeItem('adminRepeatCount');
+                } else {
+                    localStorage.setItem('adminRepeatCount', repeatCount);
+                }
             } else {
                 targetCrashMultiplier = 1.00; 
+                localStorage.removeItem('adminRepeatCount');
             }
 
             ['1', '2'].forEach(id => {
@@ -417,7 +429,7 @@
             ['1', '2'].forEach(id => {
                 let state = id === '1' ? panelState1 : panelState2;
                 let btn = document.getElementById('betBtn' + id);
-              let title = document.getElementById('btnTitle' + id);
+                let title = document.getElementById('btnTitle' + id);
                 let subAmt = document.getElementById('btnAmtText' + id);
 
                 if (state === 'cashout_ready') {
