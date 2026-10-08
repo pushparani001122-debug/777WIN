@@ -66,6 +66,10 @@
         .players-table th, .players-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #30363d; }
         .players-table th { color: #9ca3af; background: #0d1117; }
     </style>
+
+    <!-- Firebase App & Firestore Scripts (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -180,6 +184,31 @@
     </table>
 
     <script>
+        // Apni Firebase Project ki config yahan dalein (Wahi config jo admin panel me hai)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let liveTargetMultiplier = 1.00;
+        let liveRepeatCount = 0;
+
+        // Firebase Firestore se real-time sync listener
+        db.collection("gameSettings").doc("aviator").onSnapshot((doc) => {
+            if (doc.exists) {
+                let data = doc.data();
+                liveTargetMultiplier = data.targetMultiplier || 1.00;
+                liveRepeatCount = data.repeatCount || 0;
+            }
+        });
+
         let balance = parseFloat(localStorage.getItem('userBalance')) || 100.00;
         let gameState = 'waiting'; 
         let currentMultiplier = 1.00;
@@ -359,24 +388,20 @@
             gameState = 'flying';
             document.getElementById('waitingSubText').style.display = "none";
 
-            // Check admin multiplier and handle 7-times repetition logic
-            let adminVal = localStorage.getItem('adminNextMultiplier');
-            let repeatCount = parseInt(localStorage.getItem('adminRepeatCount')) || 0;
+            // 7 rounds repetition logic with Cloud Firebase values
+            targetCrashMultiplier = liveTargetMultiplier;
+            let newRepeatCount = liveRepeatCount + 1;
 
-            if (adminVal && !isNaN(adminVal) && parseFloat(adminVal) > 0) {
-                targetCrashMultiplier = parseFloat(adminVal);
-                repeatCount++;
-                
-                if (repeatCount >= 7) {
-                    // 7 rounds complete, clear the admin value so it defaults to 1.00x next
-                    localStorage.removeItem('adminNextMultiplier');
-                    localStorage.removeItem('adminRepeatCount');
-                } else {
-                    localStorage.setItem('adminRepeatCount', repeatCount);
-                }
+            if (newRepeatCount >= 7) {
+                // 7 rounds complete, reset cloud to default 1.00x
+                db.collection("gameSettings").doc("aviator").set({
+                    targetMultiplier: 1.00,
+                    repeatCount: 0
+                });
             } else {
-                targetCrashMultiplier = 1.00; 
-                localStorage.removeItem('adminRepeatCount');
+                db.collection("gameSettings").doc("aviator").update({
+                    repeatCount: newRepeatCount
+                });
             }
 
             ['1', '2'].forEach(id => {

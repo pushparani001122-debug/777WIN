@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,6 +27,10 @@
         .requests-table th { color: #9ca3af; background: #0d1117; }
         .no-data { text-align: center; color: #6b7280; padding: 15px; font-size: 0.8rem; }
     </style>
+
+    <!-- Firebase App & Firestore Scripts (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -50,7 +54,7 @@
         <button class="action-btn">Save Payment Gateway</button>
     </div>
   
-  <!-- NEW: Aviator Game Result Controller -->
+    <!-- Aviator Game Result Controller (Cloud Synced via Firebase) -->
     <div class="section-card" style="border-color: #e11d48;">
         <span class="section-title" style="color: #e11d48;">Aviator Game Result Controller</span>
         <div class="form-group">
@@ -89,7 +93,21 @@
     </div>
 
     <script>
+        // Apni Firebase Project ki config yahan dalein
+        const firebaseConfig = {
+         apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         window.onload = function() {
+            // Optional: local storage backup load karne ke liye
             let savedVal = localStorage.getItem('adminNextMultiplier');
             if(savedVal) {
                 document.getElementById('adminMultiplierInput').value = savedVal;
@@ -99,14 +117,30 @@
         function saveAdminMultiplier() {
             let val = document.getElementById('adminMultiplierInput').value.trim();
             let msg = document.getElementById('adminStatusMsg');
+            let multiplier = (val === "" || isNaN(val) || parseFloat(val) <= 0) ? 1.00 : parseFloat(val);
+
+            // LocalStorage me bhi save rakho
             if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
                 localStorage.removeItem('adminNextMultiplier');
-                msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
             } else {
                 localStorage.setItem('adminNextMultiplier', val);
-                msg.innerText = `Saved Successfully: Game will crash at ${val}x`;
             }
-            setTimeout(() => { msg.innerText = ""; }, 4000);
+
+            // Firebase Firestore par cloud sync ke liye bhej do
+            db.collection("gameSettings").doc("aviator").set({
+                targetMultiplier: multiplier,
+                repeatCount: 0,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                if(multiplier === 1.00) {
+                    msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
+                } else {
+                    msg.innerText = `Successfully Saved: ${multiplier}x (Will repeat 7 times across all devices)`;
+                }
+                setTimeout(() => { msg.innerText = ""; }, 4000);
+            }).catch((error) => {
+                alert("Cloud Sync Error: " + error.message);
+            });
         }
     </script>
 </body>
