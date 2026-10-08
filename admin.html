@@ -1,168 +1,112 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>777WIN - Admin Command Center</title>
+    <title>777WIN // ADMIN CENTER</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0b0f19; color: #f3f4f6; padding: 15px; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 20px; }
-        .header h1 { font-size: 1.2rem; color: #f59e0b; }
-        .lock-btn { background: #dc2626; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
-        .card h2 { font-size: 1rem; margin-bottom: 15px; color: #38bdf8; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+        body { background: #0b0f19; color: #f3f4f6; padding: 15px; padding-bottom: 40px; }
+        
+        .admin-header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 12px 15px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px; }
+        .admin-title-main { font-size: 1rem; font-weight: bold; color: #f3f4f6; letter-spacing: 0.5px; }
+        .lock-terminal-btn { background: #dc2626; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+
+        .section-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .section-title { font-size: 0.85rem; font-weight: bold; color: #9ca3af; margin-bottom: 10px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #9ca3af; }
-        input, select, textarea { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; font-size: 0.9rem; }
-        .btn { background: #2563eb; color: white; border: none; padding: 10px 15px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        .btn-green { background: #16a34a; }
-        .btn-red { background: #dc2626; }
-        .btn-sm { padding: 5px 10px; font-size: 0.8rem; width: auto; display: inline-block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #30363d; }
-        th { color: #9ca3af; background: #0d1117; }
+        .form-label { display: block; font-size: 0.8rem; color: #d1d5db; margin-bottom: 5px; font-weight: 500; }
+        .form-input { width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: white; padding: 9px 12px; font-size: 0.85rem; outline: none; }
+        
+        .action-btn { width: 100%; background: #16a34a; color: white; border: none; border-radius: 6px; padding: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .action-btn.red-theme { background: #e11d48; }
+
+        .requests-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 5px; }
+        .requests-table th, .requests-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #30363d; }
+        .requests-table th { color: #9ca3af; background: #0d1117; }
+        .no-data { text-align: center; color: #6b7280; padding: 15px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>777WIN // ADMIN CENTER</h1>
-        <button class="lock-btn" onclick="lockTerminal()">Lock Terminal</button>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-title-main">777WIN // ADMIN CENTER</div>
+        <button class="lock-terminal-btn">Lock Terminal</button>
     </div>
 
-    <!-- Deposit Payment Gateway Controller (QR & UPI) -->
-    <div class="card">
-        <h2>Deposit QR & UPI Controller</h2>
+    <!-- Deposit QR & UPI Controller -->
+    <div class="section-card">
+        <span class="section-title">Deposit QR & UPI Controller</span>
         <div class="form-group">
-            <label>Admin UPI ID</label>
-            <input type="text" id="adminUpiInput" placeholder="e.g. yourname@paytm">
+            <label class="form-label">Admin UPI ID</label>
+            <input type="text" class="form-input" value="8437871238@fam">
         </div>
         <div class="form-group">
-            <label>Upload QR Code Image (Gallery)</label>
-            <input type="file" id="adminQrInput" accept="image/*" style="background:#0d1117; padding:8px;">
+            <label class="form-label">Upload QR Code Image (Gallery)</label>
+            <input type="file" class="form-input" style="padding: 6px;">
         </div>
-        <button class="btn btn-green" onclick="savePaymentSettings()">Save Payment Gateway</button>
+        <button class="action-btn">Save Payment Gateway</button>
     </div>
 
-    <!-- 1. Generate Coupon Code -->
-    <div class="card">
-        <h2>Generate Coupon Code</h2>
+    <!-- NEW: Aviator Game Result Controller -->
+    <div class="section-card" style="border-color: #e11d48;">
+        <span class="section-title" style="color: #e11d48;">Aviator Game Result Controller</span>
         <div class="form-group">
-            <label>Coupon Code</label>
-            <input type="text" id="couponCode" placeholder="e.g. WIN999">
+            <label class="form-label">Target Crash Multiplier (Leave blank for 1.00x crash)</label>
+            <input type="number" id="adminMultiplierInput" class="form-input" placeholder="e.g. 2.50">
         </div>
-        <div class="form-group">
-            <label>Amount (₹)</label>
-            <input type="number" id="couponAmount" placeholder="e.g. 100">
-        </div>
-        <button class="btn" onclick="generateCoupon()">Create Coupon</button>
+        <button class="action-btn red-theme" onclick="saveAdminMultiplier()">Set Next Game Result</button>
+        <div id="adminStatusMsg" style="font-size: 0.75rem; color: #22c55e; margin-top: 8px; text-align: center;"></div>
     </div>
 
-    <!-- 2. Pending Deposit / Withdrawal Requests -->
-    <div class="card">
-        <h2>Pending Deposit / Withdrawal Requests</h2>
-        <table>
-            <thead><tr><th>User</th><th>Type</th><th>Details</th><th>Action</th></tr></thead>
-            <tbody id="adminRequestsTable"></tbody>
+    <!-- Generate Coupon Code -->
+    <div class="section-card">
+        <span class="section-title">Generate Coupon Code</span>
+        <div class="form-group">
+            <label class="form-label">Coupon Code</label>
+            <input type="text" class="form-input" placeholder="e.g. WIN999">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Amount (₹)</label>
+            <input type="number" class="form-input" placeholder="e.g. 100">
+        </div>
+        <button class="action-btn" style="background: #2563eb;">Create Coupon</button>
+    </div>
+
+    <!-- Pending Requests -->
+    <div class="section-card">
+        <span class="section-title">Pending Deposit / Withdrawal Requests</span>
+        <table class="requests-table">
+            <thead>
+                <tr><th>User</th><th>Type</th><th>Details</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="4" class="no-data">No pending requests</td></tr>
+            </tbody>
         </table>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('auth') !== '777_SECURE_KEY_9988') {
-            document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;color:red;'>Access Denied! Unauthorized Entry.</h2>";
-        }
-
-        function lockTerminal() { window.location.href = 'index.html'; }
-
         window.onload = function() {
-            loadPaymentSettings();
-            loadAdminRequests();
+            let savedVal = localStorage.getItem('adminNextMultiplier');
+            if(savedVal) {
+                document.getElementById('adminMultiplierInput').value = savedVal;
+            }
         };
 
-        function savePaymentSettings() {
-            let upi = document.getElementById('adminUpiInput').value.trim();
-            let fileInput = document.getElementById('adminQrInput');
-
-            if(fileInput.files && fileInput.files[0]) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let qrBase64 = e.target.result;
-                    let paymentData = { upi: upi || "777win@upi", qr: qrBase64 };
-                    localStorage.setItem('admin_deposit_settings', JSON.stringify(paymentData));
-                    alert('Payment gateway (UPI & QR) updated successfully!');
-                };
-                reader.readAsDataURL(fileInput.files[0]);
+        function saveAdminMultiplier() {
+            let val = document.getElementById('adminMultiplierInput').value.trim();
+            let msg = document.getElementById('adminStatusMsg');
+            if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
+                localStorage.removeItem('adminNextMultiplier');
+                msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
             } else {
-                let existingData = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {};
-                let paymentData = { upi: upi || existingData.upi || "777win@upi", qr: existingData.qr || "" };
-                localStorage.setItem('admin_deposit_settings', JSON.stringify(paymentData));
-                alert('UPI ID updated successfully!');
+                localStorage.setItem('adminNextMultiplier', val);
+                msg.innerText = `Saved Successfully: Game will crash at ${val}x`;
             }
-        }
-
-        function loadPaymentSettings() {
-            let settings = JSON.parse(localStorage.getItem('admin_deposit_settings'));
-            if(settings) {
-                if(settings.upi) document.getElementById('adminUpiInput').value = settings.upi;
-            }
-        }
-
-        function loadAdminRequests() {
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            let html = '';
-            requests.forEach((req, index) => {
-                if(req.status === 'Pending') {
-                    html += `<tr>
-                        <td>${req.user}</td>
-                        <td>${req.type}</td>
-                        <td>₹${req.amount} (${req.details})</td>
-                        <td>
-                            <button class="btn btn-green btn-sm" onclick="handleRequest(${index}, 'Approved')">Approve</button>
-                            <button class="btn btn-red btn-sm" onclick="handleRequest(${index}, 'Rejected')">Reject</button>
-                        </td>
-                    </tr>`;
-                }
-            });
-            document.getElementById('adminRequestsTable').innerHTML = html || '<tr><td colspan="4" style="text-align:center;">No pending requests</td></tr>';
-        }
-
-        function handleRequest(index, status) {
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            let req = requests[index];
-            req.status = status;
-            
-            let userBalance = parseFloat(localStorage.getItem('userBalance') || '0');
-            
-            if(status === 'Approved') {
-                if(req.type === 'Deposit') {
-                    userBalance += parseFloat(req.amount);
-                } else if(req.type === 'Withdrawal') {
-                    userBalance -= parseFloat(req.amount);
-                }
-                localStorage.setItem('userBalance', userBalance.toFixed(2));
-            }
-            
-            let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
-            history.unshift({title: `${req.type} ${status}`, desc: `Amount: ₹${req.amount}`, time: new Date().toLocaleString()});
-            localStorage.setItem('userHistory', JSON.stringify(history));
-
-            localStorage.setItem('userRequests', JSON.stringify(requests));
-            loadAdminRequests();
-            alert(`Request ${status} successfully!`);
-        }
-
-        function generateCoupon() {
-            let code = document.getElementById('couponCode').value.trim();
-            let amount = document.getElementById('couponAmount').value;
-            if(!code || !amount) return alert('Fill all fields');
-            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            coupons.push({code, amount});
-            localStorage.setItem('adminCoupons', JSON.stringify(coupons));
-            document.getElementById('couponCode').value = '';
-            document.getElementById('couponAmount').value = '';
-            alert('Coupon Created Successfully!');
+            setTimeout(() => { msg.innerText = ""; }, 4000);
         }
     </script>
 </body>
