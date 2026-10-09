@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>777WIN - Gaming Platform</title>
+    
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
     <style>
         :root {
             --bg-dark: #070b19;
@@ -162,6 +167,13 @@
             text-align: center;
             display: none;
         }
+        .success-msg {
+            color: #22c55e;
+            font-size: 13px;
+            margin-top: 6px;
+            text-align: center;
+            display: none;
+        }
 
         /* 3. Dashboard Screen Styling */
         #dashboard-screen {
@@ -236,22 +248,6 @@
             position: relative;
             overflow: hidden;
             background: #1e293b;
-        }
-
-        .banner-slide {
-            width: 100%;
-            height: 100%;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--accent-gold);
-            background: linear-gradient(45deg, #1e293b, #0f172a);
-        }
-
-        .banner-slide.active {
-            display: flex;
         }
 
         /* Categories & Games */
@@ -336,6 +332,7 @@
             font-size: 10px;
             padding: 2px 6px;
             border-radius: 4px;
+            z-index: 2;
         }
 
         .game-info {
@@ -458,7 +455,6 @@
             cursor: pointer;
         }
 
-        /* Deposit QR & UPI dynamic box styling */
         .deposit-qr-container {
             text-align: center;
             margin-bottom: 14px;
@@ -495,22 +491,54 @@
     <div id="auth-screen" class="screen">
         <div class="auth-card">
             <h2 class="auth-title" id="auth-heading">LOGIN</h2>
+            
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" id="auth-username" placeholder="Enter username">
+                <label id="user-label">Username / Phone</label>
+                <input type="text" id="auth-username" placeholder="Enter username or phone (+91...)">
             </div>
-            <div class="form-group">
+            
+            <div class="form-group" id="email-group" style="display:none;">
                 <label>E-mail</label>
                 <input type="email" id="auth-email" placeholder="Enter e-mail">
             </div>
-            <div class="form-group">
+
+            <div class="form-group" id="password-group">
                 <label>Password</label>
                 <input type="password" id="auth-password" placeholder="Enter password">
             </div>
-            <div id="auth-error" class="error-msg">Invalid credentials or account not found!</div>
+
+            <div class="form-group" id="confirm-password-group" style="display:none;">
+                <label>Confirm Password</label>
+                <input type="password" id="auth-confirm-password" placeholder="Confirm password">
+            </div>
+
+            <div class="form-group" id="referral-group" style="display:none;">
+                <label>Referral Code (Optional)</label>
+                <input type="text" id="auth-referral" placeholder="Enter referral code">
+            </div>
+
+            <!-- Real Phone OTP Fields -->
+            <div class="form-group" id="otp-group" style="display:none;">
+                <label>Enter 6-Digit OTP</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="auth-otp-input" placeholder="Enter OTP" maxlength="6">
+                    <button type="button" class="golden-btn" style="margin-top:0; width:130px; font-size:13px;" onclick="sendRealOTP()">Send OTP</button>
+                </div>
+            </div>
+
+            <div id="auth-error" class="error-msg"></div>
+            <div id="auth-success" class="success-msg"></div>
+
+            <!-- reCAPTCHA Container Required for Firebase Phone Auth -->
+            <div id="recaptcha-container"></div>
+
             <button class="golden-btn" id="auth-submit-btn" onclick="handleAuth()">Login</button>
+            
             <div class="auth-switch" onclick="toggleAuthMode()">
                 Don't have an account? <span id="switch-text">Register</span>
+            </div>
+            <div class="auth-switch" style="margin-top: 8px;" onclick="switchMode('forgot')">
+                <span style="color: var(--text-gray); font-size: 13px;">Forgot Password?</span>
             </div>
         </div>
     </div>
@@ -556,7 +584,7 @@
         </div>
     </div>
 
-    <!-- Deposit Modal with Admin QR & UPI Integration -->
+    <!-- Deposit Modal -->
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeModal('deposit-modal')">&times;</button>
@@ -573,7 +601,7 @@
             </div>
             <div class="form-group">
                 <label>UTR / UPI ID reference</label>
-                <input type="text" id="deposit-utr" placeholder="Enter UTR reference">
+                <input type="number" id="deposit-utr" placeholder="Enter UTR reference">
             </div>
             <button class="golden-btn" onclick="submitDeposit()">Submit Deposit</button>
         </div>
@@ -597,18 +625,240 @@
     </div>
 
     <script>
+        // Initialize Firebase with your project config (win-efd36)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA", // Apni Firebase API Key yahan dalein agar required ho
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.appspot.com",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:35741757833589b4f5195d"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+       // Setup Invisible Recaptcha for Phone Auth
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                    'size': 'invisible'
+                });
+            } catch(e) {
+                console.log("Recaptcha init note:", e);
+            }
+        });
+
         setTimeout(() => {
             document.getElementById('splash-screen').classList.remove('active');
             checkExistingSession();
         }, 2000);
 
-        let isRegisterMode = false;
+        let currentAuthMode = 'login'; // 'login', 'register', 'forgot'
 
-        const games = [
+        function switchMode(mode) {
+            currentAuthMode = mode;
+            const heading = document.getElementById('auth-heading');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const switchText = document.getElementById('switch-text');
+            const emailGroup = document.getElementById('email-group');
+            const confirmPwdGroup = document.getElementById('confirm-password-group');
+            const referralGroup = document.getElementById('referral-group');
+            const otpGroup = document.getElementById('otp-group');
+            const userLabel = document.getElementById('user-label');
+            const userInp = document.getElementById('auth-username');
+
+            document.getElementById('auth-error').style.display = 'none';
+            document.getElementById('auth-success').style.display = 'none';
+
+            if (mode === 'login') {
+                heading.innerText = "LOGIN";
+                submitBtn.innerText = "Login";
+                userLabel.innerText = "Username or Phone (+91...)";
+                userInp.placeholder = "Enter username or phone number";
+                emailGroup.style.display = 'none';
+                confirmPwdGroup.style.display = 'none';
+                referralGroup.style.display = 'none';
+                otpGroup.style.display = 'none';
+                switchText.innerText = "Register";
+            } else if (mode === 'register') {
+                heading.innerText = "REGISTER";
+                submitBtn.innerText = "Verify & Register";
+                userLabel.innerText = "Phone Number (with +91)";
+                userInp.placeholder = "Enter phone number e.g. +919876543210";
+                emailGroup.style.display = 'block';
+                confirmPwdGroup.style.display = 'block';
+                referralGroup.style.display = 'block';
+                otpGroup.style.display = 'block';
+                switchText.innerText = "Login";
+            } else if (mode === 'forgot') {
+                heading.innerText = "FORGOT PASSWORD";
+                submitBtn.innerText = "Reset Password";
+                userLabel.innerText = "Phone Number (with +91)";
+                userInp.placeholder = "Enter registered phone number";
+                emailGroup.style.display = 'none';
+                confirmPwdGroup.style.display = 'none';
+                referralGroup.style.display = 'none';
+                otpGroup.style.display = 'block';
+                switchText.innerText = "Back to Login";
+            }
+        }
+
+        function toggleAuthMode() {
+            if (currentAuthMode === 'login') {
+                switchMode('register');
+            } else {
+                switchMode('login');
+            }
+        }
+
+        // Real Firebase Phone OTP Dispatcher
+        function sendRealOTP() {
+            const phoneVal = document.getElementById('auth-username').value.trim();
+            const errBox = document.getElementById('auth-error');
+            const successBox = document.getElementById('auth-success');
+
+            if (!phoneVal || !phoneVal.startsWith('+')) {
+                errBox.innerText = "Please enter valid phone number with country code (e.g. +91...)";
+                errBox.style.display = 'block';
+                return;
+            }
+           errBox.style.display = 'none';
+            const appVerifier = window.recaptchaVerifier;
+
+            firebase.auth().signInWithPhoneNumber(phoneVal, appVerifier)
+                .then(function (confirmationResult) {
+                    window.confirmationResult = confirmationResult;
+                    successBox.innerText = "OTP successfully sent to your phone!";
+                    successBox.style.display = 'block';
+                }).catch(function (error) {
+                    console.error(error);
+                    errBox.innerText = "SMS Error: " + error.message;
+                    errBox.style.display = 'block';
+                });
+        }
+
+        function handleAuth() {
+            const userVal = document.getElementById('auth-username').value.trim();
+            const emailVal = document.getElementById('auth-email').value.trim();
+            const passwordVal = document.getElementById('auth-password').value.trim();
+            const confirmPwdVal = document.getElementById('auth-confirm-password').value.trim();
+            const referralVal = document.getElementById('auth-referral').value.trim();
+            const otpVal = document.getElementById('auth-otp-input').value.trim();
+            
+            const errBox = document.getElementById('auth-error');
+            const successBox = document.getElementById('auth-success');
+
+            errBox.style.display = 'none';
+            successBox.style.display = 'none';
+
+            if (!userVal || !passwordVal) {
+                errBox.innerText = "Please fill out required fields!";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+
+            if (currentAuthMode === 'register') {
+                if (!emailVal) {
+                    errBox.innerText = "Email is required!";
+                    errBox.style.display = 'block';
+                    return;
+                }
+                if (passwordVal !== confirmPwdVal) {
+                    errBox.innerText = "Passwords do not match!";
+                    errBox.style.display = 'block';
+                    return;
+                }
+                if (!window.confirmationResult) {
+                    errBox.innerText = "Please request and verify OTP first!";
+                    errBox.style.display = 'block';
+                    return;
+                }
+
+                // Verify real Firebase OTP
+                window.confirmationResult.confirm(otpVal).then((result) => {
+                    const exists = backupDb.find(u => u.email === emailVal || u.phone === userVal);
+                    if (exists) {
+                        errBox.innerText = "User already registered! Please login.";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                  const myReferralCode = "777" + Math.floor(1000 + Math.random() * 9000);
+                    let initialBalance = 0;
+
+                    if (referralVal) {
+                        let referrerUser = backupDb.find(u => u.referralCode === referralVal);
+                        if (referrerUser) {
+                            referrerUser.balance = (parseFloat(referrerUser.balance) || 0) + 20;
+                        }
+                    }
+
+                    const newUser = {
+                        username: userVal,
+                        phone: userVal,
+                        email: emailVal,
+                        password: passwordVal,
+                        referralCode: myReferralCode,
+                        balance: initialBalance
+                    };
+
+                    backupDb.push(newUser);
+                    localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+                    localStorage.setItem('active_user', userVal);
+                    localStorage.setItem('userBalance', initialBalance.toFixed(2));
+                    navigateToDashboard();
+                }).catch((error) => {
+                    errBox.innerText = "Invalid OTP code!";
+                    errBox.style.display = 'block';
+                });
+
+            } else if (currentAuthMode === 'forgot') {
+                if (!window.confirmationResult) {
+                    errBox.innerText = "Please request OTP first!";
+                    errBox.style.display = 'block';
+                    return;
+                }
+
+                window.confirmationResult.confirm(otpVal).then((result) => {
+                    let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
+                    if (!userObj) {
+                        errBox.innerText = "User account not found!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+
+                    userObj.password = passwordVal;
+                    localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+
+                    successBox.innerText = "Password successfully updated! Please login.";
+                    successBox.style.display = 'block';
+                    setTimeout(() => switchMode('login'), 2000);
+                }).catch((error) => {
+                    errBox.innerText = "Invalid OTP verification code!";
+                    errBox.style.display = 'block';
+                });
+
+            } else {
+                // Login Mode (Supports both traditional password match or admin login)
+                const user = backupDb.find(u => (u.phone === userVal || u.email === userVal || u.username === userVal) && u.password === passwordVal);
+                if (user || (userVal === "admin" && passwordVal === "admin")) {
+                    localStorage.setItem('active_user', userVal);
+                    let userBal = user ? (user.balance || 0) : 0;
+                    localStorage.setItem('userBalance', userBal.toFixed(2));
+                    navigateToDashboard();
+                } else {
+                    errBox.innerText = "Wrong Password, Username, or Phone!";
+                    errBox.style.display = 'block';
+                }
+            }
+        }
+      const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
             { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
             { name: "wingo", cat: "hot", badge: "hot", mult: "2x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10", file: "wingo.html" },
-            { name: "Wheel of Fortune", cat: "live casino", badge: "live casino", mult: "36x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTv-gLGO9fD_3SS3aD5cYJYmd1QfQ24LF1wKGMvr-1GxHTEeA_tH6OmIs&s=10", file: "wheel.html" },
+            { name: "Wheel of Fortune", cat: "casino", badge: "Casino", mult: "36x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTv-gLGO9fD_3SS3aD5cYJYmd1QfQ24LF1wKGMvr-1GxHTEeA_tH6OmIs&s=10", file: "wheel.html" },
             { name: "chicken Road", cat: "hot", badge:"Hot", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThm3mSV9mlcgNLhgdjO00G9YyQ1ZBGlzwAN3-lvLUbmw&s=10", file: "chicken.html" },
             { name: "chicken Road 2", cat: "hot", badge:"Hot", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZ4OV3R-nXrLdYoDri37quiQc1h_M17UmImtxqWx9PvA&s=10", file: "chicken2.html" },
             { name: "plinko", cat: "originals", badge: "ORIGINALS", mult: "13x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4a4GaS64wEEzctj_LgTYpx3Ge_4-M6Gq6U4Nef3wt8Q&s", file: "plinko.html" },
@@ -620,30 +870,13 @@
             { name:"money coming", cat: "slots", badge:"Slots", mult: "22x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTh6Oji9SPE0AqvHdKXaTIgEM1KyT8zABGt_a6LTj0eCA&s=10", file:"money coming.html" },
             { name:"Fortune of Gems", cat: "slots", badge:"Slots", mult: "30x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyFNKaaQ2TN42FZIQaavox6aauNHTqoBuiG15gJn7lfg&s=10", file:"Fortune.html" },
             { name:"Fortune Garuda 500", cat: "slots", badge:"Slots", mult: "35x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10", file:"Fortune Garuda.html" },
-            { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAMgAyAMBEQACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAABAAIDBAUGB//EAEEQAAEDAgMGAwUFBgQHAQAAAAEAAgMEEQUhMQYSE0FRYSJxgRQykaHBI0JisfAVQ1JygtEHJDPhU2NzkqLC8TT/xAAaAQACAwEBAAAAAAAAAAAAAAAAAQIDBAUG/8QAMREAAgIBAwMCBQMEAgMAAAAAAAECAxEEEiEFMUETURQiMmFxgbHwI1KR0TPBQqHh/9oADAMBAAIRAxEAPwDWK5R7oSkhgKYA5qSGIpoBpUkACmMSkAlIYkCCmgCPAIIEOUhMIQhCUgCEAIJiCE0AVIQUxBQAgmgHBMQQpCICuCi0CYCUxgTQwKQCKAGlSQAKkhgCkMKYghABTQCCkIKaEJMBwUgEgQQmAgmhBCYBCYghMApoQgmA4JoRCuATAVMYE0MRUgBzUkMRTQAKYDSpDEmAlJDFr27qSEzo3bHYh9yWmPm51/yU1BnGXWafKZQxTBavC2MkqeGWPdugsdfO3khpo2abXVah4h3Q/CcAqsUgdLC9jWA2BkJF+trJpENT1CvTSUZdy0/ZLE2e6YHeUn9wngoXVtM/dfp/9K9Ds/W1c72MDWtY4te/eu0HoOtk8FtvUKK4pvlv7cm7FsZT7o4tVI5/MtaAPqng5suszb+WKIK3Y97Wk0dSXnkx4tf1TLKusJvFkTmpoZsaeTsLJG6tI0QdmE42LdHlDEImJSEOTAQQIITQDgmIiK4KJgKkhgTASmMBTQwKQCKEA0qSABTGJNDC33h5qaIs9d5LQeDOd2rpJMQmw+kh1e9xJ6AWufmoyWmNrfd0Y4TeOGaOFvuiNruLnc3OPMrm6rVpqlxR2P0ro8q2s/vK5uEPEW5O3Fw90559Fz/AFHqP8zX7jS9N6bbL6Y8f8AJ//Z", file: "k3.html" },
-            { name:"royal fishing", cat: "Fishing", badge: "fishing", mult: "48x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2k0gLCiHriwiwF2LhEP2GmtY9DIcQSDEyh81YT9PaOA&s=10", file: "royal fishing.html" },
-            { name:"bombing fishing", cat: "fishing", badge: "Fishing", mult: "52x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSItHboYnXHMnRtPJ-jG3nGzasPfhfTkDKMV7aUkVVQWw&s=10", file: "bombing fishing.html" },
-            { name:"dinasaur tycoon 2", cat: "fishing", badge: "Fishing", mult: "34x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFYUYAo7LmFXbbESTLcCr8WIBWPjf5P0RwYb6yYxY9Kw&s=10", file: "dinasaur tycoon 2.html" },
-            { name:"dinasaur tycoon", cat: "fishing", badge: "Fishing", mult: "30x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMxEwZszHjjRueecew_w7On-E4rQzWfsJTTRivTLNnFg&s=10", file: "dinasaur tycoon.html" },
-            { name:"fortune of Zombie", cat: "fishing", badge: "Fishing", mult: "40x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSpnpbQU3YGhIqwTmk0zxWJEwipGBjZw7AX8tPumI5oqQ&s=10", file: "Fotune of Zombie.html" },
-            { name:"Dragon fishing", cat: "fishing", badge: "Fishing", mult: "10x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqti_TcNDYAMxzXrL-AnO5cZs4AIyvjMj_NbGcx5f2Tw&s=10", file: "dragon fishing.html" },
-            { name:"dragon fishing 2", cat: "fishing", badge: "Fishing", mult: "62x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3PKTmoYXX9JAEEVVv7GaXhsBr-HSBSRueLEkP1bdhMQ&s=10", file: "shade dragon fishing.html" },
-            { name:"fishing yilufa", cat: "fishing", badge: "Fishing", mult: "28x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYu8RgLjKGOwpVx20n4EBFA2DgK-qw97WlAQijCJgo5Q&s=10", file: "fishing yilufa" },
-            { name:"dragon master", cat: "fishing", badge: "Fishing", mult: "38x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRa6PeCzw7vnb3oaNnPVilh3RYwPIFROMJO4rjIVGSz7Q&s=10", file: "dragon master.html" },
-            { name: "fishing disco", cat: "fishing", badge: "Fishing", mult:"42x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_PYRUTeAAnwbdbpmjZc1XJH3O1A6uEHkVI_NDm-ouHg&s=10", file: "fishing disco.html" }
+            { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "k3.html" }
         ];
 
         const banners = [
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpihSStrhYqmeEccpsUjmeOe0UCQCosHD0Eke-FUkRnw&s=10", title: "Welcome to 777WIN 🔥" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMiOMUReHo2aKIjSX8rxWFqFlR8G9iJzeNHMbziMEs4A&s=10", title: "Mines Lucky Spin 💣" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrYalhQLj89YpO0b8oU6c4mfj86zWiG5Y-q0SE-o2V2w&s=10", title: "Live Casino Action ♠️" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL5mmwPLTZsE8HlftCpue7zhmh15nvmoD9DhkFkR_y2A&s", title: "Wingo Fast Results ⚡" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTt7Lu4_fcg3tLSirHXmEMJoYTE47tV7uWXD2Lk2PREAg&s=10", title: "Fishing Slots Adventure 🎣" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaqL95ZsI_tBH3Xzu1yImOLmHVioOHuCBDjajSGNrOfw&s=10", title: "Huge Jackpots Daily 💰" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMVKTmxKpw7hsFg3wBeTMhUWUD3quAnvaVNhC3gNc_xQ&s=10", title: "chicken road game 🌟" },
-            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRShc2xK3kTqCYPi9oSST0RXvtJIslcSKGEdI_Fimgi5Q&s", title: "Instant Withdrawal 💳" }
+            { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" }
         ];
 
         function startBannerCarousel() {
@@ -654,9 +887,7 @@
             banners.forEach((banner, index) => {
                 const slide = document.createElement('div');
                 slide.className = `banner-slide ${index === 0 ? 'active' : ''}`;
-                slide.style.cssText = "position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden; display: none; align-items: flex-end; padding: 12px;";
-                
-                if (index === 0) slide.style.display = 'flex';
+                slide.style.cssText = `position: relative; width: 100%; height: 150px; border-radius: 0; overflow: hidden; display: ${index === 0 ? 'flex' : 'none'}; align-items: flex-end; padding: 12px;`;
 
                 slide.innerHTML = `
                     <img src="${banner.img}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;" alt="Banner">
@@ -671,7 +902,6 @@
             setInterval(() => {
                 const slides = document.querySelectorAll('.banner-slide');
                 if (slides.length === 0) return;
-                
                 slides[currentBannerIndex].style.display = 'none';
                 currentBannerIndex = (currentBannerIndex + 1) % slides.length;
                 slides[currentBannerIndex].style.display = 'flex';
@@ -680,25 +910,11 @@
 
         function renderGames(filterCategoryName = 'ALL') {
             const grid = document.getElementById('game-grid');
+            if (!grid) return;
             grid.innerHTML = '';
-
-            // Check if admin added custom game controllers
-            let adminGames = JSON.parse(localStorage.getItem('adminGames') || '[]');
-            let combinedGames = [...games];
-            
-            adminGames.forEach(ag => {
-                combinedGames.unshift({
-                    name: ag.name,
-                    cat: "hot",
-                    badge: "ADMIN",
-                    mult: ag.val,
-                    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10",
-                    file: "spin.html"
-                });
-            });
             const filtered = filterCategoryName === 'ALL' 
-                ? combinedGames 
-                : combinedGames.filter(g => g.cat.toUpperCase() === filterCategoryName.toUpperCase());
+                ? games 
+                : games.filter(g => g.cat.toUpperCase() === filterCategoryName.toUpperCase());
 
             filtered.forEach(game => {
                 const card = document.createElement('div');
@@ -706,68 +922,22 @@
                 card.onclick = () => openGameFile(game.file);
                 
                 card.innerHTML = `
-                    <div class="game-thumb" style="background: #1f2937; position: relative; height: 100px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
-                        <span class="game-badge" style="z-index: 2;">${game.badge}</span>
-                        ${game.img ? `<img src="${game.img}" style="width: 100\%; height: 100\%; object-fit: cover; position: absolute; top: 0; left: 0;" alt="${game.name}">` : `<span style="color: var(--accent-gold); font-weight: bold;">${game.name}</span>`}
+                    <div class="game-thumb">
+                        <span class="game-badge">${game.badge}</span>
+                        <img src="${game.img}" style="width: 100%; height: 100%; object-fit: cover; position: absolute;" alt="${game.name}">
                     </div>
-                    <div class="game-info" style="padding: 10px;">
-                        <div class="game-name" style="font-size: 14px; font-weight: bold;">${game.name}</div>
-                        <div class="game-meta" style="font-size: 11px; color: var(--text-gray); margin-top: 2px;">Control: ${game.mult}</div>
+                    <div class="game-info">
+                        <div class="game-name">${game.name}</div>
+                        <div class="game-meta">Control: ${game.mult}</div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
-      function filterCategory(category, el) {
+      function filterCategory(catName, tabElement) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            renderGames(category);
-        }
-
-        function toggleAuthMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('auth-heading').innerText = isRegisterMode ? 'REGISTER' : 'LOGIN';
-            document.getElementById('auth-submit-btn').innerText = isRegisterMode ? 'Register' : 'Login';
-            document.getElementById('switch-text').innerText = isRegisterMode ? 'Login' : 'Register';
-            document.getElementById('auth-error').style.display = 'none';
-        }
-
-        function handleAuth() {
-            const username = document.getElementById('auth-username').value.trim();
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
-            const errBox = document.getElementById('auth-error');
-
-            if (!username || !email || !password) {
-                errBox.innerText = "Please fill all fields!";
-                errBox.style.display = 'block';
-                return;
-            }
-
-            let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
-
-            if (isRegisterMode) {
-                const exists = backupDb.find(u => u.email === email || u.username === username);
-                if (exists) {
-                    errBox.innerText = "User already registered! Please login.";
-                    errBox.style.display = 'block';
-                    return;
-                }
-                backupDb.push({ username, email, password });
-                localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
-                localStorage.setItem('active_user', username);
-                localStorage.setItem('userBalance', '0.00');
-                navigateToDashboard();
-            } else {
-                const user = backupDb.find(u => (u.email === email || u.username === username) && u.password === password);
-                if (user || (username === "admin" && password === "admin")) {
-                    localStorage.setItem('active_user', username);
-                    navigateToDashboard();
-                } else {
-                    errBox.innerText = "Wrong Password, Username, or E-mail!";
-                    errBox.style.display = 'block';
-                }
-            }
+            tabElement.classList.add('active');
+            renderGames(catName);
         }
 
         function checkExistingSession() {
@@ -785,14 +955,15 @@
             updateWalletDisplay();
             startBannerCarousel();
             renderGames('ALL');
+            loadAdminPaymentDetails();
         }
 
         function updateWalletDisplay() {
-            let balance = parseFloat(localStorage.getItem('userBalance') || '0.00');
-            document.getElementById('display-wallet').innerText = `₹${balance.toFixed(2)}`;
+            const bal = localStorage.getItem('userBalance') || '0.00';
+            const walletEl = document.getElementById('display-wallet');
+            if (walletEl) walletEl.innerText = `₹${parseFloat(bal).toFixed(2)}`;
         }
 
-        // Modal Control Functions (Added back to fix popup issue)
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
@@ -801,84 +972,57 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Admin Panel Data Sync for Deposit QR & UPI
         function openDepositModal() {
-            let adminSettings = JSON.parse(localStorage.getItem('admin_deposit_settings')) || {
-                upi: "777win@upi",
-                qr: ""
-            };
-
-            document.getElementById('admin-upi-text').innerText = `UPI ID: ${adminSettings.upi}`;
-            const qrImg = document.getElementById('admin-qr-preview');
-            if (adminSettings.qr) {
-                qrImg.src = adminSettings.qr;
-            } else {
-                qrImg.src = '';
-            }
-
             openModal('deposit-modal');
+            loadAdminPaymentDetails();
+        }
+      function loadAdminPaymentDetails() {
+            const qr = localStorage.getItem('admin_qr') || '';
+            const upi = localStorage.getItem('admin_upi') || '777win@upi';
+            const qrPrev = document.getElementById('admin-qr-preview');
+            const upiTxt = document.getElementById('admin-upi-text');
+            if (qrPrev && qr) qrPrev.src = qr;
+            if (upiTxt) upiTxt.innerText = `UPI ID: ${upi}`;
         }
 
         function submitDeposit() {
-            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            const amt = document.getElementById('deposit-amount').value;
             const utr = document.getElementById('deposit-utr').value;
-            if (isNaN(amount) || amount < 100) {
-                alert("Minimum deposit limit is ₹100!");
+            if (!amt || !utr) {
+                alert("Please enter amount and UTR reference!");
                 return;
             }
-            if (!utr) {
-                alert("Please enter UTR / UPI reference!");
-                return;
-            }
-
-            // Sync with Admin Pending Requests
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            let activeUser = localStorage.getItem('active_user') || 'User';
+            let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
             requests.push({
-                user: activeUser,
+                user: localStorage.getItem('active_user'),
                 type: 'Deposit',
-                amount: amount,
+                amount: amt,
                 details: `UTR: ${utr}`,
                 status: 'Pending'
             });
-          localStorage.setItem('userRequests', JSON.stringify(requests));
-
-            alert("Deposit request submitted successfully! Pending admin approval.");
+            localStorage.setItem('userRequests', JSON.stringify(requests));
+            alert("Deposit request submitted successfully! Waiting for admin approval.");
             document.getElementById('deposit-amount').value = '';
             document.getElementById('deposit-utr').value = '';
             closeModal('deposit-modal');
         }
 
         function submitWithdrawal() {
-            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const amount = document.getElementById('withdraw-amount').value;
             const upi = document.getElementById('withdraw-upi').value;
-            let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0.00');
-
-            if (isNaN(amount) || amount < 100) {
-                alert("Minimum withdrawal limit is ₹100!");
+            if (!amount || !upi) {
+                alert("Please fill out withdrawal details!");
                 return;
             }
-            if (amount > currentBalance) {
-                alert("Insufficient balance!");
-                return;
-            }
-            if (!upi) {
-                alert("Please enter UPI ID!");
-                return;
-            }
-
-            // Sync with Admin Pending Requests
-            let requests = JSON.parse(localStorage.getItem('userRequests') || '[]');
-            let activeUser = localStorage.getItem('active_user') || 'User';
+            let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
             requests.push({
-                user: activeUser,
+                user: localStorage.getItem('active_user'),
                 type: 'Withdrawal',
                 amount: amount,
                 details: `UPI: ${upi}`,
                 status: 'Pending'
             });
             localStorage.setItem('userRequests', JSON.stringify(requests));
-
             alert("Withdrawal request submitted successfully! Waiting for admin approval.");
             document.getElementById('withdraw-amount').value = '';
             document.getElementById('withdraw-upi').value = '';
@@ -895,3 +1039,5 @@
     </script>
 </body>
 </html>
+
+ 

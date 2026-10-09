@@ -81,7 +81,7 @@
             color: #38bdf8;
         }
 
-        /* Quick Action Buttons Grid (Deposit, Withdrawal, Bonus, Rules) */
+        /* Quick Action Buttons Grid */
         .actions-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -239,14 +239,14 @@
         }
 
         function confirmLogout() {
-            // Clear active session/login info if needed, then redirect to index/login
+            // Clear active session so user is forced to login/register again
+            localStorage.removeItem('active_user');
             window.location.href = 'index.html';
         }
 
         // Direct Navigation for Buttons
         function openFeature(type) {
             if(type === 'deposit') {
-                // Agar aapka modal function index.html ya main page par hai ya direct redirect karna ho:
                 if(typeof openModal === 'function') {
                     openModal('deposit');
                 } else {
@@ -259,9 +259,9 @@
                     window.location.href = 'index.html?open=withdrawal';
                 }
             } else if(type === 'bonus') {
-                window.location.href = 'bonus.html'; // ya apna bonus page link karein
+                window.location.href = 'bonus.html';
             } else if(type === 'rules') {
-                window.location.href = 'rules.html'; // ya apna rules page link karein
+                window.location.href = 'rules.html';
             }
         }
     </script>
