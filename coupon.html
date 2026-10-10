@@ -44,29 +44,41 @@
         <a href="account.html" class="nav-item">Account</a>
     </div>
 
-    <script>
+        <script>
         function claimCoupon() {
-            let enteredCode = document.getElementById('userCouponCode').value.trim();
+            let enteredCode = document.getElementById('userCouponCode').value.trim().toUpperCase();
             if(!enteredCode) return alert('Please enter a coupon code!');
 
-            let coupons = JSON.parse(localStorage.getItem('adminCoupons') || '[]');
-            let foundIndex = coupons.findIndex(c => c.code === enteredCode);
+            // Key ko 'adminCoupons' se badal kar 'active_coupons' kar diya hai
+            let coupons = JSON.parse(localStorage.getItem('active_coupons') || '[]');
+            let foundIndex = coupons.findIndex(c => c.code.toUpperCase() === enteredCode);
 
             if(foundIndex !== -1) {
                 let couponAmount = parseFloat(coupons[foundIndex].amount);
                 
-                // Add to user balance
+                // Active user balance update in both localStorage and backupDb
+                let activeUser = localStorage.getItem('active_user');
+                let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                let userObj = backupDb.find(u => u.username === activeUser || u.phone === activeUser || u.email === activeUser);
+                
                 let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0');
-                localStorage.setItem('userBalance', currentBalance + couponAmount);
+                let newBalance = currentBalance + couponAmount;
+                
+                localStorage.setItem('userBalance', newBalance.toFixed(2));
+                
+                if(userObj) {
+                    userObj.balance = newBalance;
+                    localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+                }
 
                 // Add to history
                 let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
                 history.unshift({title: 'Coupon Claimed', desc: `Code: ${enteredCode} (₹${couponAmount})`, time: new Date().toLocaleString()});
                 localStorage.setItem('userHistory', JSON.stringify(history));
 
-                // Remove coupon so it can't be used again
+                // Remove claimed coupon
                 coupons.splice(foundIndex, 1);
-                localStorage.setItem('adminCoupons', JSON.stringify(coupons));
+                localStorage.setItem('active_coupons', JSON.stringify(coupons));
 
                 document.getElementById('userCouponCode').value = '';
                 alert(`Successfully claimed ₹${couponAmount}! Added to your wallet.`);
@@ -75,5 +87,6 @@
             }
         }
     </script>
+
 </body>
 </html>
