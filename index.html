@@ -584,6 +584,7 @@
         <div class="floating-buttons">
             <div class="float-btn" onclick="openFile('bonus.html')">BONUS</div>
             <div class="float-btn" onclick="openFile('spin.html')">SPIN</div>
+            <div class="float-btn" onclick="openFile('bet.html')">BETS HISTORY</div>
         </div>
 
         <div class="bottom-nav">
@@ -656,7 +657,7 @@
         let currentAuthMode = 'login'; // 'login', 'register', 'forgot'
 
         function switchMode(mode) {
-          currentAuthMode = mode;
+            currentAuthMode = mode;
             const heading = document.getElementById('auth-heading');
             const submitBtn = document.getElementById('auth-submit-btn');
             const switchText = document.getElementById('switch-text');
@@ -701,8 +702,9 @@
                 otpGroup.style.display = 'block';
                 switchText.innerText = "Back to Login";
             }
-        }
-      function toggleAuthMode() {
+          }
+
+        function toggleAuthMode() {
             if (currentAuthMode === 'login') {
                 switchMode('register');
             } else {
@@ -723,7 +725,6 @@
             }
             errBox.style.display = 'none';
 
-            // Generate random 6-digit OTP
             const generatedOTP = Math.floor(100000 + Math.random() * 900000);
             localStorage.setItem('temp_generated_otp', generatedOTP);
 
@@ -741,7 +742,7 @@
                     },
                     body: JSON.stringify(apiPayload)
                 });
-                 if (response.ok) {
+                if (response.ok) {
                     successBox.innerText = "OTP successfully sent via APITxT!";
                     successBox.style.display = 'block';
                 } else {
@@ -760,7 +761,7 @@
             const emailVal = document.getElementById('auth-email').value.trim();
             const passwordVal = document.getElementById('auth-password').value.trim();
             const confirmPwdVal = document.getElementById('auth-confirm-password').value.trim();
-            const referralVal = document.getElementById('auth-referral').value.trim();
+            const referralVal = document.getElementById('auth-referral').value.trim().toUpperCase();
             const otpVal = document.getElementById('auth-otp-input').value.trim();
             
             const errBox = document.getElementById('auth-error');
@@ -788,7 +789,7 @@
                     errBox.style.display = 'block';
                     return;
                 }
-              const expectedOTP = localStorage.getItem('temp_generated_otp');
+                const expectedOTP = localStorage.getItem('temp_generated_otp');
                 if (!otpVal || otpVal !== expectedOTP) {
                     errBox.innerText = "Please enter correct 6-digit OTP!";
                     errBox.style.display = 'block';
@@ -802,13 +803,35 @@
                     return;
                 }
 
-                const myReferralCode = "777" + Math.floor(1000 + Math.random() * 9000);
+                // Check if device/user already used a referral code
+                let usedReferrals = JSON.parse(localStorage.getItem('used_referral_tracking') || '{}');
+                if (referralVal) {
+                    if (usedReferrals[userVal]) {
+                        errBox.innerText = "You have already used a referral code!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                }
+              // Generate unique referral code for this new user
+                let myReferralCode;
+                let existingCodes = backupDb.map(u => u.referralCode);
+                do {
+                    myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
+                } while (existingCodes.includes(myReferralCode));
+
                 let initialBalance = 0;
 
+                // Handle referral reward
                 if (referralVal) {
                     let referrerUser = backupDb.find(u => u.referralCode === referralVal);
                     if (referrerUser) {
                         referrerUser.balance = (parseFloat(referrerUser.balance) || 0) + 20;
+                        usedReferrals[userVal] = true;
+                        localStorage.setItem('used_referral_tracking', JSON.stringify(usedReferrals));
+                    } else {
+                        errBox.innerText = "Invalid referral code!";
+                        errBox.style.display = 'block';
+                        return;
                     }
                 }
 
@@ -834,7 +857,7 @@
                     errBox.style.display = 'block';
                     return;
                 }
-              let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
+                let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
                 if (!userObj) {
                     errBox.innerText = "User account not found!";
                     errBox.style.display = 'block';
@@ -860,9 +883,8 @@
                     errBox.style.display = 'block';
                 }
             }
-        }
-
-        const games = [
+                }
+      const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
             { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
             { name: "wingo", cat: "hot", badge: "hot", mult: "2x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10", file: "wingo.html" },
@@ -880,7 +902,8 @@
             { name:"Fortune Garuda 500", cat: "slots", badge:"Slots", mult: "35x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10", file:"Fortune Garuda.html" },
             { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "k3.html" }
         ];
-      const banners = [
+
+        const banners = [
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpihSStrhYqmeEccpsUjmeOe0UCQCosHD0Eke-FUkRnw&s=10", title: "Welcome to 777WIN 🔥" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" }
@@ -914,7 +937,8 @@
                 slides[currentBannerIndex].style.display = 'flex';
             }, 3000);
         }
-      function renderGames(filterCategoryName = 'ALL') {
+
+        function renderGames(filterCategoryName = 'ALL') {
             const grid = document.getElementById('game-grid');
             if (!grid) return;
             grid.innerHTML = '';
@@ -939,9 +963,8 @@
                 `;
                 grid.appendChild(card);
             });
-        }
-
-        function filterCategory(catName, tabElement) {
+      }
+      function filterCategory(catName, tabElement) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             tabElement.classList.add('active');
             renderGames(catName);
@@ -983,7 +1006,8 @@
             openModal('deposit-modal');
             loadAdminPaymentDetails();
         }
-                async function loadAdminPaymentDetails() {
+
+        async function loadAdminPaymentDetails() {
             try {
                 if (typeof db !== 'undefined') {
                     let doc = await db.collection("gameSettings").doc("paymentGateway").get();
@@ -1005,7 +1029,7 @@
             }
         }
 
-      function submitDeposit() {
+        function submitDeposit() {
             const amt = document.getElementById('deposit-amount').value;
             const utr = document.getElementById('deposit-utr').value;
             if (!amt || !utr) {
@@ -1048,14 +1072,14 @@
             document.getElementById('withdraw-upi').value = '';
             closeModal('withdrawal-modal');
         }
-      function openFile(filename) {
+
+        function openFile(filename) {
             window.location.href = filename;
         }
 
-        function openGameFile(gameFile) {
+        function openGameField(gameFile) {
             window.location.href = gameFile;
         }
     </script>
 </body>
 </html>
-           

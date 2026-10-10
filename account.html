@@ -176,10 +176,19 @@
         </div>
     </div>
 
-    <!-- Wallet Balance Area -->
+    <!-- Wallet Balance Area with Unique Referral Code -->
     <div class="wallet-card">
         <div class="wallet-title">Total Balance</div>
         <div class="wallet-balance" id="accountBalance">₹0.00</div>
+        
+        <!-- Referral Code Section inside Wallet Card -->
+        <div style="margin-top: 15px; border-top: 1px solid #30363d; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 0.75rem; color: #9ca3af;">My Referral Code</div>
+                <div id="userReferralCode" style="font-size: 1rem; font-weight: bold; color: #f59e0b; letter-spacing: 1px;">LOADING...</div>
+            </div>
+            <button onclick="copyReferralCode()" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">Copy Code</button>
+        </div>
     </div>
 
     <!-- 4 Direct Feature Buttons -->
@@ -227,7 +236,33 @@
                 localStorage.setItem('userUid', storedUid);
             }
             document.getElementById('userUid').innerText = storedUid;
+
+            // 3. Load or Generate Unique Referral Code for User
+            let activeUser = localStorage.getItem('active_user') || storedUid;
+            let refCodes = JSON.parse(localStorage.getItem('user_referral_codes') || '{}');
+            
+            let myRefCode = refCodes[activeUser];
+            if(!myRefCode) {
+                // Ensure unique referral code generation
+                do {
+                    myRefCode = 'WIN' + Math.floor(100000 + Math.random() * 900000);
+                } while(Object.values(refCodes).includes(myRefCode));
+
+                refCodes[activeUser] = myRefCode;
+                localStorage.setItem('user_referral_codes', JSON.stringify(refCodes));
+            }
+            document.getElementById('userReferralCode').innerText = myRefCode;
         };
+
+        // Copy Referral Code Function
+        function copyReferralCode() {
+            let code = document.getElementById('userReferralCode').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Referral code copied successfully!');
+            }).catch(err => {
+                alert('Failed to copy code.');
+            });
+        }
 
         // Logout Modal Functions
         function openLogoutModal() {
@@ -239,7 +274,6 @@
         }
 
         function confirmLogout() {
-            // Clear active session so user is forced to login/register again
             localStorage.removeItem('active_user');
             window.location.href = 'index.html';
         }
