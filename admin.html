@@ -31,6 +31,10 @@
         .btn-approve { background: #16a34a; color: white; }
         .btn-reject { background: #dc2626; color: white; }
     </style>
+
+    <!-- Firebase App & Firestore Scripts (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -42,7 +46,7 @@
 
     <!-- Deposit QR & UPI Controller -->
     <div class="section-card">
-        <span class="section-title">Deposit QR & UPI Controller</span>
+        <span class="section-title">Deposit QR & UPI Controller (Cloud Synced)</span>
         <div class="form-group">
             <label class="form-label">Admin UPI ID</label>
             <input type="text" id="adminUpiInput" class="form-input" placeholder="e.g. 8437871238@fam">
@@ -51,7 +55,7 @@
             <label class="form-label">Upload QR Code Image (Gallery)</label>
             <input type="file" id="adminQrFile" class="form-input" style="padding: 6px;" accept="image/*">
         </div>
-        <button class="action-btn" onclick="savePaymentGateway()">Save Payment Gateway</button>
+        <button class="action-btn" onclick="savePaymentGateway()">Save Payment Gateway to Cloud</button>
         <div id="paymentStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
     </div>
   
@@ -68,7 +72,7 @@
 
     <!-- Generate Coupon Code -->
     <div class="section-card">
-        <span class="section-title">Generate Coupon Code</span>
+        <span class="section-title">Generate Coupon Code (Cloud Synced)</span>
         <div class="form-group">
             <label class="form-label">Coupon Code</label>
             <input type="text" id="couponCodeInput" class="form-input" placeholder="e.g. WIN999">
@@ -77,51 +81,19 @@
             <label class="form-label">Amount (₹)</label>
             <input type="number" id="couponAmountInput" class="form-input" placeholder="e.g. 100">
         </div>
-        <button class="action-btn" style="background: #2563eb;" onclick="createCoupon()">Create Coupon</button>
+        <button class="action-btn" style="background: #2563eb;" onclick="createCoupon()">Create & Sync Coupon</button>
         <div id="couponStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
     </div>
 
     <!-- Active Coupons Status List -->
     <div class="section-card">
-        <span class="section-title">Active Coupons Status (Auto-expires in 2 Hours)</span>
+        <span class="section-title">Active Coupons Status</span>
         <table class="requests-table">
             <thead>
-                <tr><th>Code</th><th>Amount</th><th>Created At</th><th>Action</th></tr>
+                <tr><th>Code</th><th>Amount</th><th>Action</th></tr>
             </thead>
             <tbody id="activeCouponsTableBody">
-                <tr><td colspan="4" class="no-data">No active coupons</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Bonus Offer Controller -->
-    <div class="section-card" style="border-color: #38bdf8;">
-        <span class="section-title" style="color: #38bdf8;">Bonus Offer Controller</span>
-        <div class="form-group">
-            <label class="form-label">Bonus Condition / Description</label>
-            <input type="text" id="bonusConditionInput" class="form-input" placeholder="e.g. Complete 5 games or make a deposit">
-        </div>
-        <div class="form-group">
-            <label class="form-label">Bonus Winning Amount (₹)</label>
-            <input type="number" id="bonusAmountInput" class="form-input" placeholder="e.g. 50">
-        </div>
-        <div class="form-group">
-            <label class="form-label">Validity (in Days - visible only to users)</label>
-            <input type="number" id="bonusDaysInput" class="form-input" placeholder="e.g. 3">
-        </div>
-        <button class="action-btn" style="background: #0284c7;" onclick="createAdminBonus()">Publish Bonus Offer</button>
-        <div id="bonusStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
-    </div>
-
-    <!-- Active Bonuses Status List (Admin View without validity) -->
-    <div class="section-card">
-        <span class="section-title">Active Bonuses For Users</span>
-        <table class="requests-table">
-            <thead>
-                <tr><th>Condition</th><th>Winning Amount</th><th>Action</th></tr>
-            </thead>
-            <tbody id="adminActiveBonusesTable">
-                <tr><td colspan="3" class="no-data">No active bonus offers</td></tr>
+                <tr><td colspan="3" class="no-data">No active coupons</td></tr>
             </tbody>
         </table>
     </div>
@@ -142,6 +114,21 @@
     <script>
         const ADMIN_PASSWORD = "admin123";
 
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         window.onload = function() {
             let isUnlocked = sessionStorage.getItem('admin_unlocked');
             if (isUnlocked !== "true") {
@@ -158,20 +145,23 @@
                 document.body.classList.add('unlocked');
             }
 
-            let savedUpi = localStorage.getItem('admin_upi');
-            if(savedUpi) {
-                document.getElementById('adminUpiInput').value = savedUpi;
-            }
+            // Fetch current settings from Firestore
+            db.collection("gameSettings").doc("paymentGateway").get().then((doc) => {
+                if (doc.exists) {
+                    let data = doc.data();
+                    if (data.upi) document.getElementById('adminUpiInput').value = data.upi;
+                }
+            });
 
-            let savedVal = localStorage.getItem('adminNextMultiplier');
-            if(savedVal) {
-                document.getElementById('adminMultiplierInput').value = savedVal;
-            }
+            db.collection("gameSettings").doc("aviator").get().then((doc) => {
+                if (doc.exists) {
+                    let data = doc.data();
+                    if (data.targetMultiplier) document.getElementById('adminMultiplierInput').value = data.targetMultiplier;
+                }
+            });
 
             loadRequests();
-            loadActiveCoupons();
-            loadAdminBonuses();
-            setInterval(loadActiveCoupons, 30000); // Check expiry every 30 seconds
+            loadCloudCoupons();
         };
 
         function lockAdmin() {
@@ -179,27 +169,89 @@
             window.location.href = "index.html";
         }
 
+        // Save UPI & QR Code to Firestore Cloud
         function savePaymentGateway() {
             let upi = document.getElementById('adminUpiInput').value.trim();
             let fileInput = document.getElementById('adminQrFile');
             let status = document.getElementById('paymentStatus');
 
-            if(upi) {
-                localStorage.setItem('admin_upi', upi);
-            }
+            let updateData = { upi: upi };
 
             if(fileInput.files && fileInput.files[0]) {
                 let reader = new FileReader();
                 reader.onload = function(e) {
-                    localStorage.setItem('admin_qr', e.target.result);
-                    status.innerText = "Payment Gateway & QR Saved Successfully!";
-                    setTimeout(() => status.innerText = "", 3000);
+                    updateData.qrCode = e.target.result;
+                    db.collection("gameSettings").doc("paymentGateway").set(updateData, { merge: true }).then(() => {
+                        status.innerText = "Payment Gateway & QR Synced to Cloud!";
+                        setTimeout(() => status.innerText = "", 3000);
+                    });
                 };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
-                status.innerText = "UPI ID Saved Successfully!";
-                setTimeout(() => status.innerText = "", 3000);
+                db.collection("gameSettings").doc("paymentGateway").set(updateData, { merge: true }).then(() => {
+                    status.innerText = "UPI ID Synced to Cloud!";
+                    setTimeout(() => status.innerText = "", 3000);
+                });
             }
+        }
+
+        // Create Coupon and Sync to Firestore Cloud
+        function createCoupon() {
+            let code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
+            let amount = document.getElementById('couponAmountInput').value.trim();
+            let status = document.getElementById('couponStatus');
+
+            if(!code || !amount) {
+                alert("Please enter both coupon code and amount!");
+                return;
+            }
+
+            db.collection("gameSettings").doc("couponsCollection").get().then((doc) => {
+                let coupons = doc.exists ? (doc.data().list || []) : [];
+                coupons.push({ code: code, amount: parseFloat(amount), createdAt: new Date().getTime() });
+                
+                db.collection("gameSettings").doc("couponsCollection").set({ list: coupons }).then(() => {
+                    status.innerText = `Coupon ${code} (₹${amount}) Created & Synced!`;
+                    document.getElementById('couponCodeInput').value = '';
+                    document.getElementById('couponAmountInput').value = '';
+                    loadCloudCoupons();
+                    setTimeout(() => status.innerText = "", 3000);
+                });
+            });
+        }
+
+        function loadCloudCoupons() {
+            let tbody = document.getElementById('activeCouponsTableBody');
+            if(!tbody) return;
+
+            db.collection("gameSettings").doc("couponsCollection").get().then((doc) => {
+                let coupons = doc.exists ? (doc.data().list || []) : [];
+                if(coupons.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="no-data">No active coupons</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                coupons.forEach((c, index) => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: bold; color: #38bdf8;">${c.code}</td>
+                        <td>₹${c.amount}</td>
+                        <td><button class="mini-btn btn-reject" onclick="deleteCloudCoupon(${index})">Remove</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function deleteCloudCoupon(index) {
+            db.collection("gameSettings").doc("couponsCollection").get().then((doc) => {
+                let coupons = doc.exists ? (doc.data().list || []) : [];
+                coupons.splice(index, 1);
+                db.collection("gameSettings").doc("couponsCollection").set({ list: coupons }).then(() => {
+                    loadCloudCoupons();
+                });
+            });
         }
 
         function loadRequests() {
@@ -236,186 +288,44 @@
             let realIndex = requests.findIndex(r => r === targetReq);
             if(realIndex !== -1) {
                 requests[realIndex].status = action;
-
                 if(action === 'Approved') {
                     let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
                     let userObj = backupDb.find(u => u.username === targetReq.user || u.phone === targetReq.user);
-                    
                     if(userObj) {
                         let currentBal = parseFloat(userObj.balance) || 0;
                         let reqAmt = parseFloat(targetReq.amount) || 0;
-                        
                         if(targetReq.type === 'Deposit') {
                             userObj.balance = currentBal + reqAmt;
                         } else if(targetReq.type === 'Withdrawal') {
                             if(currentBal >= reqAmt) {
                                 userObj.balance = currentBal - reqAmt;
                             } else {
-                                alert("User has insufficient balance for this withdrawal!");
+                                alert("User has insufficient balance!");
                                 return;
                             }
                         }
                         localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
                     }
                 }
-
                 localStorage.setItem('userRequests', JSON.stringify(requests));
                 loadRequests();
                 alert(`Request ${action} successfully!`);
             }
         }
 
-        function createCoupon() {
-            let code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
-            let amount = document.getElementById('couponAmountInput').value.trim();
-            let status = document.getElementById('couponStatus');
-
-            if(!code || !amount) {
-                alert("Please enter both coupon code and amount!");
-                return;
-            }
-
-            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
-            coupons.push({ 
-                code: code, 
-                amount: parseFloat(amount),
-                createdAt: new Date().getTime() 
-            });
-            localStorage.setItem('active_coupons', JSON.stringify(coupons));
-            loadActiveCoupons();
-
-            status.innerText = `Coupon ${code} (₹${amount}) Created Successfully!`;
-            document.getElementById('couponCodeInput').value = '';
-            document.getElementById('couponAmountInput').value = '';
-            setTimeout(() => status.innerText = "", 3000);
-        }
-
-        function loadActiveCoupons() {
-            let tbody = document.getElementById('activeCouponsTableBody');
-            if(!tbody) return;
-
-            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
-            let currentTime = new Date().getTime();
-            let twoHours = 2 * 60 * 60 * 1000;
-
-            let validCoupons = coupons.filter(c => {
-                return (currentTime - (c.createdAt || 0)) < twoHours;
-            });
-
-            if(validCoupons.length !== coupons.length) {
-                localStorage.setItem('active_coupons', JSON.stringify(validCoupons));
-            }
-
-            if(validCoupons.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="no-data">No active coupons</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            validCoupons.forEach((c, index) => {
-                let timeString = c.createdAt ? new Date(c.createdAt).toLocaleTimeString() : 'N/A';
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight: bold; color: #38bdf8;">${c.code}</td>
-                    <td>₹${c.amount}</td>
-                    <td>${timeString}</td>
-                    <td><button class="mini-btn btn-reject" onclick="deleteCoupon(${index})">Remove</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function deleteCoupon(index) {
-            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
-            coupons.splice(index, 1);
-            localStorage.setItem('active_coupons', JSON.stringify(coupons));
-            loadActiveCoupons();
-        }
-
-        // Bonus Admin Functions
-        function createAdminBonus() {
-            let condition = document.getElementById('bonusConditionInput').value.trim();
-            let amount = document.getElementById('bonusAmountInput').value.trim();
-            let days = document.getElementById('bonusDaysInput').value.trim();
-            let status = document.getElementById('bonusStatus');
-
-            if(!condition || !amount || !days) {
-                alert("Please fill out all bonus fields!");
-                return;
-            }
-
-            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
-            let expiryTime = new Date().getTime() + (parseInt(days) * 24 * 60 * 60 * 1000);
-            
-            bonuses.push({
-                id: 'bonus_' + Date.now(),
-                condition: condition,
-                amount: parseFloat(amount),
-                days: parseInt(days),
-                expiry: expiryTime
-            });
-
-            localStorage.setItem('admin_active_bonuses', JSON.stringify(bonuses));
-            loadAdminBonuses();
-
-            status.innerText = "Bonus Offer Published Successfully!";
-            document.getElementById('bonusConditionInput').value = '';
-            document.getElementById('bonusAmountInput').value = '';
-            document.getElementById('bonusDaysInput').value = '';
-            setTimeout(() => status.innerText = "", 3000);
-        }
-
-        function loadAdminBonuses() {
-            let tbody = document.getElementById('adminActiveBonusesTable');
-            if(!tbody) return;
-
-            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
-            let currentTime = new Date().getTime();
-
-            let validBonuses = bonuses.filter(b => currentTime < b.expiry);
-
-            if(validBonuses.length !== bonuses.length) {
-                localStorage.setItem('admin_active_bonuses', JSON.stringify(validBonuses));
-            }
-
-            if(validBonuses.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="no-data">No active bonus offers</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            validBonuses.forEach((b, index) => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${b.condition}</td>
-                    <td style="color: #38bdf8; font-weight: bold;">₹${b.amount}</td>
-                    <td><button class="mini-btn btn-reject" onclick="removeAdminBonus(${index})">Remove</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function removeAdminBonus(index) {
-            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
-            bonuses.splice(index, 1);
-            localStorage.setItem('admin_active_bonuses', JSON.stringify(bonuses));
-            loadAdminBonuses();
-        }
-
-        // Local Storage Based Multiplier Control for Aviator
         function saveAdminMultiplier() {
             let val = document.getElementById('adminMultiplierInput').value.trim();
             let msg = document.getElementById('adminStatusMsg');
             let multiplier = (val === "" || isNaN(val) || parseFloat(val) <= 0) ? 1.00 : parseFloat(val);
 
-            if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
-                localStorage.removeItem('adminNextMultiplier');
-                msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
-            } else {
-                localStorage.setItem('adminNextMultiplier', val);
+            db.collection("gameSettings").doc("aviator").set({
+                targetMultiplier: multiplier,
+                repeatCount: 0,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
                 msg.innerText = `Successfully Saved: ${multiplier}x`;
-            }
-            setTimeout(() => { msg.innerText = ""; }, 4000);
+                setTimeout(() => { msg.innerText = ""; }, 4000);
+            });
         }
     </script>
 </body>

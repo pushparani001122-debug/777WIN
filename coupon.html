@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,6 +18,10 @@
         .nav-item { color: #9ca3af; text-decoration: none; font-size: 0.8rem; text-align: center; }
         .nav-item.active { color: #38bdf8; }
     </style>
+
+    <!-- Firebase App & Firestore Scripts (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -44,49 +48,69 @@
         <a href="account.html" class="nav-item">Account</a>
     </div>
 
-        <script>
-        function claimCoupon() {
+    <script>
+        // Firebase Initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
+        async function claimCoupon() {
             let enteredCode = document.getElementById('userCouponCode').value.trim().toUpperCase();
             if(!enteredCode) return alert('Please enter a coupon code!');
 
-            // Key ko 'adminCoupons' se badal kar 'active_coupons' kar diya hai
-            let coupons = JSON.parse(localStorage.getItem('active_coupons') || '[]');
-            let foundIndex = coupons.findIndex(c => c.code.toUpperCase() === enteredCode);
+            try {
+                let docRef = db.collection("gameSettings").doc("couponsCollection");
+                let doc = await docRef.get();
+                let coupons = doc.exists ? (doc.data().list || []) : [];
+                let foundIndex = coupons.findIndex(c => c.code.toUpperCase() === enteredCode);
 
-            if(foundIndex !== -1) {
-                let couponAmount = parseFloat(coupons[foundIndex].amount);
-                
-                // Active user balance update in both localStorage and backupDb
-                let activeUser = localStorage.getItem('active_user');
-                let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
-                let userObj = backupDb.find(u => u.username === activeUser || u.phone === activeUser || u.email === activeUser);
-                
-                let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0');
-                let newBalance = currentBalance + couponAmount;
-                
-                localStorage.setItem('userBalance', newBalance.toFixed(2));
-                
-                if(userObj) {
-                    userObj.balance = newBalance;
-                    localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+                if(foundIndex !== -1) {
+                    let couponAmount = parseFloat(coupons[foundIndex].amount);
+                    
+                    // Active user balance update in both localStorage and backupDb
+                    let activeUser = localStorage.getItem('active_user');
+                    let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                    let userObj = backupDb.find(u => u.username === activeUser || u.phone === activeUser || u.email === activeUser);
+                    
+                    let currentBalance = parseFloat(localStorage.getItem('userBalance') || '0');
+                    let newBalance = currentBalance + couponAmount;
+                    
+                    localStorage.setItem('userBalance', newBalance.toFixed(2));
+                    
+                    if(userObj) {
+                        userObj.balance = newBalance;
+                        localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+                    }
+
+                    // Add to history
+                    let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
+                    history.unshift({title: 'Coupon Claimed', desc: `Code: ${enteredCode} (₹${couponAmount})`, time: new Date().toLocaleString()});
+                    localStorage.setItem('userHistory', JSON.stringify(history));
+
+                    // Remove claimed coupon from cloud database
+                    coupons.splice(foundIndex, 1);
+                    await docRef.set({ list: coupons });
+
+                    document.getElementById('userCouponCode').value = '';
+                    alert(`Successfully claimed ₹${couponAmount}! Added to your wallet.`);
+                } else {
+                    alert('Invalid or expired coupon code!');
                 }
-
-                // Add to history
-                let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
-                history.unshift({title: 'Coupon Claimed', desc: `Code: ${enteredCode} (₹${couponAmount})`, time: new Date().toLocaleString()});
-                localStorage.setItem('userHistory', JSON.stringify(history));
-
-                // Remove claimed coupon
-                coupons.splice(foundIndex, 1);
-                localStorage.setItem('active_coupons', JSON.stringify(coupons));
-
-                document.getElementById('userCouponCode').value = '';
-                alert(`Successfully claimed ₹${couponAmount}! Added to your wallet.`);
-            } else {
-                alert('Invalid or expired coupon code!');
+            } catch (error) {
+                console.error("Cloud Error:", error);
+                alert("Error connecting to cloud. Please try again.");
             }
         }
     </script>
-
 </body>
 </html>

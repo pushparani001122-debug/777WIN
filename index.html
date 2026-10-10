@@ -967,14 +967,24 @@
             loadAdminPaymentDetails();
         }
 
-        function loadAdminPaymentDetails() {
-            const qr = localStorage.getItem('admin_qr') || '';
-            const upi = localStorage.getItem('admin_upi') || '777win@upi';
-            const qrPrev = document.getElementById('admin-qr-preview');
-            const upiTxt = document.getElementById('admin-upi-text');
-            if (qrPrev && qr) qrPrev.src = qr;
-            if (upiTxt) upiTxt.innerText = `UPI ID: ${upi}`;
+                   function loadAdminPaymentDetails() {
+            if (typeof db !== 'undefined') {
+                db.collection("gameSettings").doc("paymentGateway").get().then((doc) => {
+                    if (doc.exists) {
+                        let data = doc.data();
+                        const qrPrev = document.getElementById('admin-qr-preview');
+                        const upiTxt = document.getElementById('admin-upi-text');
+                        if (qrPrev && data.qrCode) qrPrev.src = data.qrCode;
+                        if (upiTxt) upiTxt.innerText = `UPI ID: ${data.upi || '777win@upi'}`;
+                    }
+                }).catch((error) => {
+                    console.log("Error loading payment gateway: ", error);
+                });
+            }
         }
+    
+    
+ 
       function submitDeposit() {
             const amt = document.getElementById('deposit-amount').value;
             const utr = document.getElementById('deposit-utr').value;
