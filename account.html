@@ -241,7 +241,7 @@
         }
         const db = firebase.firestore();
 
-        window.onload = async function() {
+                window.onload = async function() {
             let activeUser = localStorage.getItem('active_user');
             if(!activeUser) {
                 window.location.href = 'index.html';
@@ -251,35 +251,32 @@
             document.getElementById('userName').innerText = activeUser;
 
             try {
-                // Fetch live user info from Firebase Firestore
                 let userDocRef = db.collection("users").doc(activeUser);
                 let doc = await userDocRef.get();
 
                 if(doc.exists) {
                     let data = doc.data();
                     let balance = parseFloat(data.balance || 0).toFixed(2);
+                    
+                    // Sync both UI and LocalStorage
                     document.getElementById('accountBalance').innerText = `₹${balance}`;
                     localStorage.setItem('userBalance', balance);
 
                     if(data.referralCode) {
                         document.getElementById('userReferralCode').innerText = data.referralCode;
                         document.getElementById('userUid').innerText = data.referralCode;
-                    } else {
-                        document.getElementById('userReferralCode').innerText = "WIN999999";
                     }
                 } else {
-                    // Fallback to localStorage if offline/not found in doc
                     let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
                     document.getElementById('accountBalance').innerText = `₹${balance}`;
-                    document.getElementById('userReferralCode').innerText = localStorage.getItem('userUid') || "WIN123456";
                 }
             } catch (err) {
-                console.error("Error fetching account details: ", err);
+                console.error("Sync error: ", err);
                 let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
                 document.getElementById('accountBalance').innerText = `₹${balance}`;
-                document.getElementById('userReferralCode').innerText = localStorage.getItem('userUid') || "WIN123456";
             }
         };
+
 
         // Copy Referral Code Function
         function copyReferCode() {

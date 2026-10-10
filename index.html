@@ -800,7 +800,7 @@
                         return;
                     }
 
-                    let referrerId = null;
+                                        let referrerId = null;
                     if (referralVal) {
                         const refQuery = await db.collection("users").where("referralCode", "==", referralVal).get();
                         if (refQuery.empty) {
@@ -820,9 +820,20 @@
                         const referrerDoc = await referrerRef.get();
                         if (referrerDoc.exists) {
                             let currentRefBal = parseFloat(referrerDoc.data().balance || 0);
+                            let newRefBal = currentRefBal + 20;
+                            
                             await referrerRef.update({
-                                balance: currentRefBal + 20
+                                balance: newRefBal
                             });
+
+                            let refHistory = referrerDoc.data().history || [];
+                            refHistory.push({
+                                type: 'Referral Bonus',
+                                amount: 20,
+                                details: `Bonus from new registration: ${userVal}`,
+                                date: new Date().toLocaleString()
+                            });
+                            await referrerRef.update({ history: refHistory });
                         }
                     }
 
@@ -832,7 +843,8 @@
                         email: emailVal,
                         password: passwordVal,
                         referralCode: myReferralCode,
-                        balance: initialBalance
+                        balance: initialBalance,
+                        history: []
                     });
 
                     localStorage.setItem('active_user', userVal);
