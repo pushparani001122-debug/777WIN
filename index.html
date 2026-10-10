@@ -641,7 +641,6 @@
             checkExistingSession();
         }, 2000);
 
-        // Auto sync active user balance periodically so that admin approvals reflect live
         setInterval(() => {
             const activeUser = localStorage.getItem('active_user');
             if(activeUser) {
@@ -654,7 +653,7 @@
             }
         }, 2000);
 
-        let currentAuthMode = 'login'; // 'login', 'register', 'forgot'
+        let currentAuthMode = 'login';
 
         function switchMode(mode) {
             currentAuthMode = mode;
@@ -702,7 +701,7 @@
                 otpGroup.style.display = 'block';
                 switchText.innerText = "Back to Login";
             }
-          }
+        }
 
         function toggleAuthMode() {
             if (currentAuthMode === 'login') {
@@ -712,7 +711,6 @@
             }
         }
 
-        // APITxT OTP Dispatcher Function
         async function sendAPITxTOTP() {
             const phoneVal = document.getElementById('auth-username').value.trim();
             const errBox = document.getElementById('auth-error');
@@ -722,8 +720,8 @@
                 errBox.innerText = "Please enter valid phone number with country code (e.g. +91...)";
                 errBox.style.display = 'block';
                 return;
-            }
-            errBox.style.display = 'none';
+      }
+          errBox.style.display = 'none';
 
             const generatedOTP = Math.floor(100000 + Math.random() * 900000);
             localStorage.setItem('temp_generated_otp', generatedOTP);
@@ -755,73 +753,7 @@
                 successBox.style.display = 'block';
             }
         }
-                       function handleAuth() {
-            const userVal = document.getElementById('auth-username').value.trim();
-            const emailVal = document.getElementById('auth-email').value.trim();
-            const passwordVal = document.getElementById('auth-password').value.trim();
-            const confirmPwdVal = document.getElementById('auth-confirm-password').value.trim();
-            const referralVal = document.getElementById('auth-referral').value.trim().toUpperCase();
-            const otpVal = document.getElementById('auth-otp-input').value.trim();
-            
-            const errBox = document.getElementById('auth-error');
-            const successBox = document.getElementById('auth-success');
 
-            errBox.style.display = 'none';
-            successBox.style.display = 'none';
-
-            if (!userVal || !passwordVal) {
-                errBox.innerText = "Please fill out required fields!";
-                errBox.style.display = 'block';
-                return;
-            }
-
-            let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
-
-            if (currentAuthMode === 'register') {
-                if (!emailVal) {
-                    errBox.innerText = "Email is required!";
-                    errBox.style.display = 'block';
-                    return;
-                }
-                if (passwordVal !== confirmPwdVal) {
-                    errBox.innerText = "Passwords do not match!";
-                    errBox.style.display = 'block';
-                    return;
-                }
-                const expectedOTP = localStorage.getItem('temp_generated_otp');
-                if (!otpVal || otpVal !== expectedOTP) {
-                    errBox.innerText = "Please enter correct 6-digit OTP!";
-                    errBox.style.display = 'block';
-                    return;
-                }
-
-                const exists = backupDb.find(u => u.email === emailVal || u.phone === userVal);
-                if (exists) {
-                    errBox.innerText = "User already registered! Please login.";
-                    errBox.style.display = 'block';
-                    return;
-                }
-
-                // Global Referral Database Check
-                let refCodes = JSON.parse(localStorage.getItem('user_referral_codes') || '{}');
-                let referrerUsername = null;
-
-                if (referralVal) {
-                    referrerUsername = Object.keys(refCodes).find(key => refCodes[key] === referralVal);
-                    if (!referrerUsername) {
-                        errBox.innerText = "Invalid referral code!";
-                        errBox.style.display = 'block';
-                        return;
-                    }
-                }
-
-                // Generate unique referral code for this new user
-                let myReferralCode;
-                do {
-                    myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
-                } while (Object.values(refCodes).includes(myReferralCode));
-
-                refCodes[userVal] = myReferralCode;
         async function handleAuth() {
             const userVal = document.getElementById('auth-username').value.trim();
             const emailVal = document.getElementById('auth-email').value.trim();
@@ -841,8 +773,7 @@
                 errBox.style.display = 'block';
                 return;
             }
-
-            try {
+          try {
                 if (currentAuthMode === 'register') {
                     if (!emailVal) {
                         errBox.innerText = "Email is required!";
@@ -861,7 +792,6 @@
                         return;
                     }
 
-                    // Check if user already exists in Firestore
                     const userRef = db.collection("users").doc(userVal);
                     const userDoc = await userRef.get();
                     if (userDoc.exists) {
@@ -871,7 +801,6 @@
                     }
 
                     let referrerId = null;
-                    // Check Referral Code globally in Firestore
                     if (referralVal) {
                         const refQuery = await db.collection("users").where("referralCode", "==", referralVal).get();
                         if (refQuery.empty) {
@@ -883,12 +812,9 @@
                         }
                     }
 
-                    // Generate unique referral code for new user
                     let myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
-                    
                     let initialBalance = 0;
 
-                    // If valid referral, give ₹20 bonus to referrer in Firestore
                     if (referrerId) {
                         const referrerRef = db.collection("users").doc(referrerId);
                         const referrerDoc = await referrerRef.get();
@@ -900,7 +826,6 @@
                         }
                     }
 
-                    // Save new user to Firestore database
                     await userRef.set({
                         username: userVal,
                         phone: userVal,
@@ -910,7 +835,6 @@
                         balance: initialBalance
                     });
 
-                    // Local storage sync for active session
                     localStorage.setItem('active_user', userVal);
                     localStorage.setItem('userBalance', initialBalance.toFixed(2));
                     localStorage.setItem('userUid', myReferralCode);
@@ -937,15 +861,13 @@
                     setTimeout(() => switchMode('login'), 2000);
 
                 } else {
-                    // Login check from Firestore
                     if (userVal === "admin" && passwordVal === "admin") {
                         localStorage.setItem('active_user', userVal);
                         localStorage.setItem('userBalance', '0.00');
                         navigateToDashboard();
                         return;
                     }
-
-                    const userRef = db.collection("users").doc(userVal);
+                  const userRef = db.collection("users").doc(userVal);
                     const userDoc = await userRef.get();
                     
                     if (userDoc.exists && userDoc.data().password === passwordVal) {
@@ -966,9 +888,7 @@
             }
         }
 
-   
-
-      const games = [
+        const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
             { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
             { name: "wingo", cat: "hot", badge: "hot", mult: "2x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10", file: "wingo.html" },
@@ -992,8 +912,7 @@
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" }
         ];
-
-        function startBannerCarousel() {
+      function startBannerCarousel() {
             const container = document.getElementById('banner-slider');
             if (!container) return;
             container.innerHTML = '';
@@ -1047,8 +966,9 @@
                 `;
                 grid.appendChild(card);
             });
-      }
-      function filterCategory(catName, tabElement) {
+        }
+
+        function filterCategory(catName, tabElement) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             tabElement.classList.add('active');
             renderGames(catName);
@@ -1090,8 +1010,7 @@
             openModal('deposit-modal');
             loadAdminPaymentDetails();
         }
-
-        async function loadAdminPaymentDetails() {
+      async function loadAdminPaymentDetails() {
             try {
                 if (typeof db !== 'undefined') {
                     let doc = await db.collection("gameSettings").doc("paymentGateway").get();
