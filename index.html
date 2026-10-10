@@ -800,7 +800,7 @@
                         return;
                     }
 
-                                        let referrerId = null;
+                                   let referrerId = null;
                     if (referralVal) {
                         const refQuery = await db.collection("users").where("referralCode", "==", referralVal).get();
                         if (refQuery.empty) {
@@ -815,6 +815,9 @@
                     let myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
                     let initialBalance = 0;
 
+                    // Firestore Batch to ensure atomic update for both referrer and new user
+                    const batch = db.batch();
+
                     if (referrerId) {
                         const referrerRef = db.collection("users").doc(referrerId);
                         const referrerDoc = await referrerRef.get();
@@ -822,22 +825,24 @@
                             let currentRefBal = parseFloat(referrerDoc.data().balance || 0);
                             let newRefBal = currentRefBal + 20;
                             
-                            await referrerRef.update({
-                                balance: newRefBal
-                            });
-
                             let refHistory = referrerDoc.data().history || [];
-                            refHistory.push({
+                            refHistory.unshift({
                                 type: 'Referral Bonus',
                                 amount: 20,
                                 details: `Bonus from new registration: ${userVal}`,
                                 date: new Date().toLocaleString()
                             });
-                            await referrerRef.update({ history: refHistory });
+
+                            batch.update(referrerRef, {
+                                balance: newRefBal,
+                                history: refHistory
+                            });
                         }
                     }
 
-                    await userRef.set({
+                    // Create new user document in Firestore
+                    const newUserRef = db.collection("users").doc(userVal);
+                    batch.set(newUserRef, {
                         username: userVal,
                         phone: userVal,
                         email: emailVal,
@@ -847,11 +852,13 @@
                         history: []
                     });
 
+                    await batch.commit();
+
                     localStorage.setItem('active_user', userVal);
                     localStorage.setItem('userBalance', initialBalance.toFixed(2));
                     localStorage.setItem('userUid', myReferralCode);
                     navigateToDashboard();
-
+                         
                 } else if (currentAuthMode === 'forgot') {
                     const expectedOTP = localStorage.getItem('temp_generated_otp');
                     if (!otpVal || otpVal !== expectedOTP) {

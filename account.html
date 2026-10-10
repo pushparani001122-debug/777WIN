@@ -226,7 +226,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
@@ -241,7 +240,7 @@
         }
         const db = firebase.firestore();
 
-                window.onload = async function() {
+        window.onload = async function() {
             let activeUser = localStorage.getItem('active_user');
             if(!activeUser) {
                 window.location.href = 'index.html';
@@ -258,7 +257,7 @@
                     let data = doc.data();
                     let balance = parseFloat(data.balance || 0).toFixed(2);
                     
-                    // Sync both UI and LocalStorage
+                    // Sync UI and LocalStorage perfectly
                     document.getElementById('accountBalance').innerText = `₹${balance}`;
                     localStorage.setItem('userBalance', balance);
 
@@ -271,14 +270,12 @@
                     document.getElementById('accountBalance').innerText = `₹${balance}`;
                 }
             } catch (err) {
-                console.error("Sync error: ", err);
+                console.error("Cloud sync error: ", err);
                 let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
                 document.getElementById('accountBalance').innerText = `₹${balance}`;
             }
         };
 
-
-        // Copy Referral Code Function
         function copyReferCode() {
             let code = document.getElementById('userReferralCode').innerText;
             navigator.clipboard.writeText(code).then(() => {
@@ -288,7 +285,6 @@
             });
         }
 
-        // Logout Modal Functions
         function openLogoutModal() {
             document.getElementById('logoutModal').style.display = 'flex';
         }
@@ -302,7 +298,6 @@
             window.location.href = 'index.html';
         }
 
-        // Direct Navigation for Buttons
         function openFeature(type) {
             if(type === 'deposit') {
                 window.location.href = 'index.html';

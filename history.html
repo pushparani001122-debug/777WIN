@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>777WIN - Transaction History</title>
+    <!-- Firebase App & Firestore Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0b0f19; color: #f3f4f6; padding: 15px; padding-bottom: 70px; }
@@ -12,7 +15,7 @@
         .history-info h3 { font-size: 0.9rem; color: #38bdf8; margin-bottom: 3px; }
         .history-info p { font-size: 0.8rem; color: #9ca3af; margin-bottom: 2px; }
         .history-info span { font-size: 0.75rem; color: #6b7280; }
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #161b22; border-top: 1px solid #30363d; display: flex; justify-content: space-around; padding: 10px 0; }
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #161b22; border-top: 1px solid #30363d; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
         .nav-item { color: #9ca3af; text-decoration: none; font-size: 0.8rem; text-align: center; }
         .nav-item.active { color: #38bdf8; }
     </style>
@@ -23,7 +26,7 @@
         <h1>Transaction History</h1>
     </div>
 
-    <div id="historyContainer"></div>
+    <div id="historyContainer">Loading history...</div>
 
     <!-- Navigation Bar -->
     <div class="nav-bar">
@@ -36,23 +39,72 @@
     </div>
 
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+
         window.onload = function() {
             loadHistory();
         };
 
-        function loadHistory() {
-            let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
-            let html = '';
-            history.forEach(item => {
-                html += `<div class="card">
-                    <div class="history-info">
-                        <h3>${item.title}</h3>
-                        <p>${item.desc}</p>
-                        <span>${item.time}</span>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('historyContainer').innerHTML = html || '<p style="text-align:center; color:#9ca3af; margin-top:30px;">No history records found yet.</p>';
+        async function loadHistory() {
+            let activeUser = localStorage.getItem('active_user');
+            if (!activeUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                let docRef = db.collection("users").doc(activeUser);
+                let doc = await docRef.get();
+                let history = [];
+
+                if (doc.exists && doc.data().history) {
+                    history = doc.data().history;
+                } else {
+                    history = JSON.parse(localStorage.getItem('userHistory') || '[]');
+                }
+
+                let html = '';
+                history.forEach(item => {
+                    let title = item.title || item.type || 'Transaction';
+                    let desc = item.desc || item.details || `Amount: ₹${item.amount || 0}`;
+                    let time = item.time || item.date || '';
+
+                    html += `<div class="card">
+                        <div class="history-info">
+                            <h3>${title}</h3>
+                            <p>${desc}</p>
+                            <span>${time}</span>
+                        </div>
+                    </div>`;
+                });
+                
+                document.getElementById('historyContainer').innerHTML = html || '<p style="text-align:center; color:#9ca3af; margin-top:30px;">No history records found yet.</p>';
+            } catch (err) {
+                console.error("Error loading history: ", err);
+                let history = JSON.parse(localStorage.getItem('userHistory') || '[]');
+                let html = '';
+                history.forEach(item => {
+                    html += `<div class="card">
+                        <div class="history-info">
+                            <h3>${item.title || item.type || 'Transaction'}</h3>
+                            <p>${item.desc || item.details || ''}</p>
+                            <span>${item.time || item.date || ''}</span>
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('historyContainer').innerHTML = html || '<p style="text-align:center; color:#9ca3af; margin-top:30px;">No history records found yet.</p>';
+            }
         }
     </script>
 </body>
