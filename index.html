@@ -755,8 +755,7 @@
                 successBox.style.display = 'block';
             }
         }
-
-        function handleAuth() {
+                  function handleAuth() {
             const userVal = document.getElementById('auth-username').value.trim();
             const emailVal = document.getElementById('auth-email').value.trim();
             const passwordVal = document.getElementById('auth-password').value.trim();
@@ -803,35 +802,41 @@
                     return;
                 }
 
-                // Check if device/user already used a referral code
-                let usedReferrals = JSON.parse(localStorage.getItem('used_referral_tracking') || '{}');
+                // Check Referral Codes storage
+                let refCodes = JSON.parse(localStorage.getItem('user_referral_codes') || '{}');
+                let referrerUsername = null;
+
                 if (referralVal) {
-                    if (usedReferrals[userVal]) {
-                        errBox.innerText = "You have already used a referral code!";
+                    // Find username who owns this referral code
+                    referrerUsername = Object.keys(refCodes).find(key => refCodes[key] === referralVal);
+                    if (!referrerUsername) {
+                        errBox.innerText = "Invalid referral code!";
                         errBox.style.display = 'block';
                         return;
                     }
                 }
-              // Generate unique referral code for this new user
+
+                // Generate unique referral code for this new user
                 let myReferralCode;
-                let existingCodes = backupDb.map(u => u.referralCode);
                 do {
                     myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
-                } while (existingCodes.includes(myReferralCode));
+                } while (Object.values(refCodes).includes(myReferralCode));
+
+                refCodes[userVal] = myReferralCode;
+                localStorage.setItem('user_referral_codes', JSON.stringify(refCodes));
 
                 let initialBalance = 0;
 
-                // Handle referral reward
-                if (referralVal) {
-                    let referrerUser = backupDb.find(u => u.referralCode === referralVal);
+                // Give ₹20 bonus to referrer if valid code was entered
+                if (referrerUsername) {
+                    let referrerUser = backupDb.find(u => u.username === referrerUsername || u.phone === referrerUsername);
                     if (referrerUser) {
                         referrerUser.balance = (parseFloat(referrerUser.balance) || 0) + 20;
-                        usedReferrals[userVal] = true;
-                        localStorage.setItem('used_referral_tracking', JSON.stringify(usedReferrals));
-                    } else {
-                        errBox.innerText = "Invalid referral code!";
-                        errBox.style.display = 'block';
-                        return;
+                    }
+                    // If referrer is currently logged in on some device, update live session balance too
+                    let currentRefBal = parseFloat(localStorage.getItem('userBalance') || '0');
+                    if (localStorage.getItem('active_user') === referrerUsername) {
+                        localStorage.setItem('userBalance', (currentRefBal + 20).toFixed(2));
                     }
                 }
 
@@ -840,7 +845,6 @@
                     phone: userVal,
                     email: emailVal,
                     password: passwordVal,
-                    referralCode: myReferralCode,
                     balance: initialBalance
                 };
 
@@ -883,7 +887,8 @@
                     errBox.style.display = 'block';
                 }
             }
-                }
+        }
+
       const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
             { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
