@@ -755,7 +755,7 @@
                 successBox.style.display = 'block';
             }
         }
-                  function handleAuth() {
+                       function handleAuth() {
             const userVal = document.getElementById('auth-username').value.trim();
             const emailVal = document.getElementById('auth-email').value.trim();
             const passwordVal = document.getElementById('auth-password').value.trim();
@@ -802,12 +802,11 @@
                     return;
                 }
 
-                // Check Referral Codes storage
+                // Global Referral Database Check
                 let refCodes = JSON.parse(localStorage.getItem('user_referral_codes') || '{}');
                 let referrerUsername = null;
 
                 if (referralVal) {
-                    // Find username who owns this referral code
                     referrerUsername = Object.keys(refCodes).find(key => refCodes[key] === referralVal);
                     if (!referrerUsername) {
                         errBox.innerText = "Invalid referral code!";
@@ -827,16 +826,11 @@
 
                 let initialBalance = 0;
 
-                // Give ₹20 bonus to referrer if valid code was entered
+                // Give ₹20 bonus to referrer
                 if (referrerUsername) {
                     let referrerUser = backupDb.find(u => u.username === referrerUsername || u.phone === referrerUsername);
                     if (referrerUser) {
                         referrerUser.balance = (parseFloat(referrerUser.balance) || 0) + 20;
-                    }
-                    // If referrer is currently logged in on some device, update live session balance too
-                    let currentRefBal = parseFloat(localStorage.getItem('userBalance') || '0');
-                    if (localStorage.getItem('active_user') === referrerUsername) {
-                        localStorage.setItem('userBalance', (currentRefBal + 20).toFixed(2));
                     }
                 }
 
@@ -888,6 +882,7 @@
                 }
             }
         }
+   
 
       const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },

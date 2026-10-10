@@ -29,7 +29,6 @@
         .multiplier-text { font-size: 2.8rem; font-weight: bold; color: #ffffff; z-index: 3; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
         .waiting-sub-text { font-size: 0.85rem; color: #9ca3af; margin-top: 4px; z-index: 3; letter-spacing: 0.5px; font-weight: 600; }
         
-        /* Loading Progress Bar for Waiting Phase */
         .loading-bar-container { width: 140px; height: 4px; background: #374151; border-radius: 2px; margin-top: 8px; overflow: hidden; z-index: 3; display: none; }
         .loading-bar-fill { width: 0%; height: 100%; background: #38bdf8; transition: width 0.1s linear; }
 
@@ -63,7 +62,6 @@
         .players-table th { color: #9ca3af; background: #0d1117; }
     </style>
 
-    <!-- Firebase App & Firestore Scripts (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
@@ -347,7 +345,6 @@
             document.getElementById('multiplierDisplay').style.color = "#ffffff";
             document.getElementById('waitingSubText').style.display = "block";
             
-            // Show and animate loading bar for 5 seconds
             const loadContainer = document.getElementById('loadingBarContainer');
             const loadFill = document.getElementById('loadingBarFill');
             loadContainer.style.display = "block";
@@ -382,7 +379,6 @@
                 }
             });
 
-            // 5 seconds waiting timer
             setTimeout(() => {
                 loadContainer.style.display = "none";
                 loadFill.style.transition = "none";
@@ -421,7 +417,7 @@
                 drawScene(progress);
 
                 [1, 2].forEach(id => {
-                    let state = id === 1 ? panelState1 : panelState2;
+                  let state = id === 1 ? panelState1 : panelState2;
                     if(state === 'cashout_ready') {
                         let betAmt = parseFloat(document.getElementById('betInput' + id).value) || 10;
                         let liveWin = betAmt * currentMultiplier;
@@ -464,4 +460,4 @@
         }
     </script>
 </body>
-</html>
+</html>         
