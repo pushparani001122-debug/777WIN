@@ -623,10 +623,23 @@
             checkExistingSession();
         }, 2000);
 
+        // Auto sync active user balance periodically so that admin approvals reflect live
+        setInterval(() => {
+            const activeUser = localStorage.getItem('active_user');
+            if(activeUser) {
+                let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                let userObj = backupDb.find(u => u.username === activeUser || u.phone === activeUser || u.email === activeUser);
+                if(userObj) {
+                    localStorage.setItem('userBalance', (userObj.balance || 0).toFixed(2));
+                    updateWalletDisplay();
+                }
+            }
+        }, 2000);
+
         let currentAuthMode = 'login'; // 'login', 'register', 'forgot'
 
         function switchMode(mode) {
-            currentAuthMode = mode;
+          currentAuthMode = mode;
             const heading = document.getElementById('auth-heading');
             const submitBtn = document.getElementById('auth-submit-btn');
             const switchText = document.getElementById('switch-text');
@@ -672,8 +685,7 @@
                 switchText.innerText = "Back to Login";
             }
         }
-
-        function toggleAuthMode() {
+      function toggleAuthMode() {
             if (currentAuthMode === 'login') {
                 switchMode('register');
             } else {
@@ -704,7 +716,6 @@
             };
 
             try {
-                // APITxT Endpoint integration using your Auth Key
                 const response = await fetch('https://api.apitxt.com/v1/send', {
                     method: 'POST',
                     headers: {
@@ -713,18 +724,15 @@
                     },
                     body: JSON.stringify(apiPayload)
                 });
-
-                if (response.ok) {
+                 if (response.ok) {
                     successBox.innerText = "OTP successfully sent via APITxT!";
                     successBox.style.display = 'block';
                 } else {
-                    // Fallback local alert simulation if test environment blocks live SMS gateway
                     successBox.innerText = `OTP Sent! (Test Code: ${generatedOTP})`;
                     successBox.style.display = 'block';
                 }
             } catch (error) {
                 console.error('APITxT Error:', error);
-                // Fallback simulation for seamless flow
                 successBox.innerText = `OTP Generated (Offline Simulation: ${generatedOTP})`;
                 successBox.style.display = 'block';
             }
@@ -763,14 +771,14 @@
                     errBox.style.display = 'block';
                     return;
                 }
-                
-                const expectedOTP = localStorage.getItem('temp_generated_otp');
+              const expectedOTP = localStorage.getItem('temp_generated_otp');
                 if (!otpVal || otpVal !== expectedOTP) {
                     errBox.innerText = "Please enter correct 6-digit OTP!";
                     errBox.style.display = 'block';
                     return;
-      }
-              const exists = backupDb.find(u => u.email === emailVal || u.phone === userVal);
+                }
+
+                const exists = backupDb.find(u => u.email === emailVal || u.phone === userVal);
                 if (exists) {
                     errBox.innerText = "User already registered! Please login.";
                     errBox.style.display = 'block';
@@ -809,8 +817,7 @@
                     errBox.style.display = 'block';
                     return;
                 }
-
-                let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
+              let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
                 if (!userObj) {
                     errBox.innerText = "User account not found!";
                     errBox.style.display = 'block';
@@ -825,7 +832,6 @@
                 setTimeout(() => switchMode('login'), 2000);
 
             } else {
-                // Login Mode
                 const user = backupDb.find(u => (u.phone === userVal || u.email === userVal || u.username === userVal) && u.password === passwordVal);
                 if (user || (userVal === "admin" && passwordVal === "admin")) {
                     localStorage.setItem('active_user', userVal);
@@ -837,8 +843,9 @@
                     errBox.style.display = 'block';
                 }
             }
-                      }
-       const games = [
+        }
+
+        const games = [
             { name: "Aviator Crash", cat: "hot", badge: "HOT", mult: "100x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "Aviator.html" },
             { name: "Mines", cat: "slots", badge: "Slots", mult: "50x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMJRCQE5LOzBq36Xfnq7_t0vq3suifItjXQxwBcB_zIewM6ZjciIgMhl3J&s=10", file: "Mines.html" },
             { name: "wingo", cat: "hot", badge: "hot", mult: "2x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnf18nGgN_Gly6FoH7HCOnhX8_O8WbbtVHCFafW8oV_A&s=10", file: "wingo.html" },
@@ -856,8 +863,7 @@
             { name:"Fortune Garuda 500", cat: "slots", badge:"Slots", mult: "35x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeQa7i7wsnLmURNmLF_94IZE-LFhrQTEGmsBxUMBHItw&s=10", file:"Fortune Garuda.html" },
             { name:"k3", cat: "hot", badge: "Hot", mult: "70x", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwEnJX4oNeCPak4AUpmU5dno-TCSK2ZCxQf7yMGFd0cw&s=10", file: "k3.html" }
         ];
-
-        const banners = [
+      const banners = [
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpihSStrhYqmeEccpsUjmeOe0UCQCosHD0Eke-FUkRnw&s=10", title: "Welcome to 777WIN 🔥" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT22F7Ax8BY_Lz2QLU5f57SQQVBJHrrmWc-j_imhpJoQQ&s", title: "Daily Bonus & Rewards 🎁" },
             { img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJproI0wcM2B2J6whoLLuI10p5DKLwH_fN0kJex8YbpQ&s", title: "Play Aviator & Win Big 🚀" }
@@ -881,7 +887,8 @@
                 `;
                 container.appendChild(slide);
             });
-          let currentBannerIndex = 0;
+
+            let currentBannerIndex = 0;
             setInterval(() => {
                 const slides = document.querySelectorAll('.banner-slide');
                 if (slides.length === 0) return;
@@ -890,8 +897,7 @@
                 slides[currentBannerIndex].style.display = 'flex';
             }, 3000);
         }
-
-        function renderGames(filterCategoryName = 'ALL') {
+      function renderGames(filterCategoryName = 'ALL') {
             const grid = document.getElementById('game-grid');
             if (!grid) return;
             grid.innerHTML = '';
@@ -917,7 +923,8 @@
                 grid.appendChild(card);
             });
         }
-      function filterCategory(catName, tabElement) {
+
+        function filterCategory(catName, tabElement) {
             document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
             tabElement.classList.add('active');
             renderGames(catName);
@@ -968,8 +975,7 @@
             if (qrPrev && qr) qrPrev.src = qr;
             if (upiTxt) upiTxt.innerText = `UPI ID: ${upi}`;
         }
-
-        function submitDeposit() {
+      function submitDeposit() {
             const amt = document.getElementById('deposit-amount').value;
             const utr = document.getElementById('deposit-utr').value;
             if (!amt || !utr) {
@@ -1012,8 +1018,7 @@
             document.getElementById('withdraw-upi').value = '';
             closeModal('withdrawal-modal');
         }
-
-        function openFile(filename) {
+      function openFile(filename) {
             window.location.href = filename;
         }
 
@@ -1023,3 +1028,4 @@
     </script>
 </body>
 </html>
+           
