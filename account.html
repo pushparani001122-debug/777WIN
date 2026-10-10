@@ -157,6 +157,10 @@
         .btn-no { background: #30363d; color: #ffffff; }
         .btn-yes { background: #dc2626; color: #ffffff; }
     </style>
+
+    <!-- Firebase SDK Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -187,7 +191,7 @@
                 <div style="font-size: 0.75rem; color: #9ca3af;">My Referral Code</div>
                 <div id="userReferralCode" style="font-size: 1rem; font-weight: bold; color: #f59e0b; letter-spacing: 1px;">LOADING...</div>
             </div>
-            <button onclick="copyReferralCode()" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">Copy Code</button>
+            <button onclick="copyReferCode()" style="background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer;">Copy Code</button>
         </div>
     </div>
 
@@ -224,38 +228,61 @@
     </div>
 
     <script>
-        window.onload = function() {
-            // 1. Load Live Wallet Balance from localStorage
-            let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
-            document.getElementById('accountBalance').innerText = `₹${balance}`;
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
 
-            // 2. Set Unique UID if not already created
-            let storedUid = localStorage.getItem('userUid');
-            if(!storedUid) {
-                storedUid = Math.floor(10000000 + Math.random() * 90000000);
-                localStorage.setItem('userUid', storedUid);
+        window.onload = async function() {
+            let activeUser = localStorage.getItem('active_user');
+            if(!activeUser) {
+                window.location.href = 'index.html';
+                return;
             }
-            document.getElementById('userUid').innerText = storedUid;
 
-            // 3. Load or Generate Unique Referral Code for User
-            let activeUser = localStorage.getItem('active_user') || storedUid;
-            let refCodes = JSON.parse(localStorage.getItem('user_referral_codes') || '{}');
-            
-            let myRefCode = refCodes[activeUser];
-            if(!myRefCode) {
-                // Ensure unique referral code generation
-                do {
-                    myRefCode = 'WIN' + Math.floor(100000 + Math.random() * 900000);
-                } while(Object.values(refCodes).includes(myRefCode));
+            document.getElementById('userName').innerText = activeUser;
 
-                refCodes[activeUser] = myRefCode;
-                localStorage.setItem('user_referral_codes', JSON.stringify(refCodes));
+            try {
+                // Fetch live user info from Firebase Firestore
+                let userDocRef = db.collection("users").doc(activeUser);
+                let doc = await userDocRef.get();
+
+                if(doc.exists) {
+                    let data = doc.data();
+                    let balance = parseFloat(data.balance || 0).toFixed(2);
+                    document.getElementById('accountBalance').innerText = `₹${balance}`;
+                    localStorage.setItem('userBalance', balance);
+
+                    if(data.referralCode) {
+                        document.getElementById('userReferralCode').innerText = data.referralCode;
+                        document.getElementById('userUid').innerText = data.referralCode;
+                    } else {
+                        document.getElementById('userReferralCode').innerText = "WIN999999";
+                    }
+                } else {
+                    // Fallback to localStorage if offline/not found in doc
+                    let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
+                    document.getElementById('accountBalance').innerText = `₹${balance}`;
+                    document.getElementById('userReferralCode').innerText = localStorage.getItem('userUid') || "WIN123456";
+                }
+            } catch (err) {
+                console.error("Error fetching account details: ", err);
+                let balance = parseFloat(localStorage.getItem('userBalance') || '0').toFixed(2);
+                document.getElementById('accountBalance').innerText = `₹${balance}`;
+                document.getElementById('userReferralCode').innerText = localStorage.getItem('userUid') || "WIN123456";
             }
-            document.getElementById('userReferralCode').innerText = myRefCode;
         };
 
         // Copy Referral Code Function
-        function copyReferralCode() {
+        function copyReferCode() {
             let code = document.getElementById('userReferralCode').innerText;
             navigator.clipboard.writeText(code).then(() => {
                 alert('Referral code copied successfully!');
@@ -281,17 +308,9 @@
         // Direct Navigation for Buttons
         function openFeature(type) {
             if(type === 'deposit') {
-                if(typeof openModal === 'function') {
-                    openModal('deposit');
-                } else {
-                    window.location.href = 'index.html?open=deposit';
-                }
+                window.location.href = 'index.html';
             } else if(type === 'withdrawal') {
-                if(typeof openModal === 'function') {
-                    openModal('withdrawal');
-                } else {
-                    window.location.href = 'index.html?open=withdrawal';
-                }
+                window.location.href = 'index.html';
             } else if(type === 'bonus') {
                 window.location.href = 'bonus.html';
             } else if(type === 'rules') {
