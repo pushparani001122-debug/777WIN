@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -85,6 +85,19 @@
         <div id="couponStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
     </div>
 
+    <!-- Active Coupons Status List -->
+    <div class="section-card">
+        <span class="section-title">Active Coupons Status (Auto-expires in 2 Hours)</span>
+        <table class="requests-table">
+            <thead>
+                <tr><th>Code</th><th>Amount</th><th>Created At</th><th>Action</th></tr>
+            </thead>
+            <tbody id="activeCouponsTableBody">
+                <tr><td colspan="4" class="no-data">No active coupons</td></tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Pending Requests -->
     <div class="section-card">
         <span class="section-title">Pending Deposit / Withdrawal Requests</span>
@@ -99,10 +112,9 @@
     </div>
 
     <script>
-        const ADMIN_PASSWORD = "admin123"; // Yahan aap apna pasandida password rakh sakte hain
+        const ADMIN_PASSWORD = "admin123";
 
         window.onload = function() {
-            // Password Authentication Check
             let isUnlocked = sessionStorage.getItem('admin_unlocked');
             if (isUnlocked !== "true") {
                 let pwd = prompt("Enter Admin Password to Access Center:");
@@ -118,7 +130,6 @@
                 document.body.classList.add('unlocked');
             }
 
-            // Load Saved Admin Settings
             let savedUpi = localStorage.getItem('admin_upi');
             if(savedUpi) {
                 document.getElementById('adminUpiInput').value = savedUpi;
@@ -130,6 +141,8 @@
             }
 
             loadRequests();
+            loadActiveCoupons();
+            setInterval(loadActiveCoupons, 30000); // Check expiry every 30 seconds
         };
 
         function lockAdmin() {
@@ -137,7 +150,6 @@
             window.location.href = "index.html";
         }
 
-        // Save UPI & QR Code to localStorage
         function savePaymentGateway() {
             let upi = document.getElementById('adminUpiInput').value.trim();
             let fileInput = document.getElementById('adminQrFile');
@@ -161,7 +173,6 @@
             }
         }
 
-        // Load and display pending requests from user actions
         function loadRequests() {
             let tbody = document.getElementById('requestsTableBody');
             let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
@@ -188,13 +199,11 @@
             });
         }
 
-        // Approve or Reject Deposit/Withdrawal & Update User Wallet Balance
         function handleRequest(index, action) {
             let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
             let pending = requests.filter(r => r.status === 'Pending');
             let targetReq = pending[index];
 
-            // Real index find karo main array mein
             let realIndex = requests.findIndex(r => r === targetReq);
             if(realIndex !== -1) {
                 requests[realIndex].status = action;
@@ -227,7 +236,6 @@
             }
         }
 
-        // Create Coupon Code
         function createCoupon() {
             let code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
             let amount = document.getElementById('couponAmountInput').value.trim();
@@ -239,8 +247,13 @@
             }
 
             let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
-            coupons.push({ code: code, amount: parseFloat(amount) });
+            coupons.push({ 
+                code: code, 
+                amount: parseFloat(amount),
+                createdAt: new Date().getTime() 
+            });
             localStorage.setItem('active_coupons', JSON.stringify(coupons));
+            loadActiveCoupons();
 
             status.innerText = `Coupon ${code} (₹${amount}) Created Successfully!`;
             document.getElementById('couponCodeInput').value = '';
@@ -248,7 +261,48 @@
             setTimeout(() => status.innerText = "", 3000);
         }
 
-        // Firebase Config for Aviator
+        function loadActiveCoupons() {
+            let tbody = document.getElementById('activeCouponsTableBody');
+            if(!tbody) return;
+
+            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
+            let currentTime = new Date().getTime();
+            let twoHours = 2 * 60 * 60 * 1000;
+
+            let validCoupons = coupons.filter(c => {
+                return (currentTime - (c.createdAt || 0)) < twoHours;
+            });
+
+            if(validCoupons.length !== coupons.length) {
+                localStorage.setItem('active_coupons', JSON.stringify(validCoupons));
+            }
+
+            if(validCoupons.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="no-data">No active coupons</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            validCoupons.forEach((c, index) => {
+                let timeString = c.createdAt ? new Date(c.createdAt).toLocaleTimeString() : 'N/A';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: bold; color: #38bdf8;">${c.code}</td>
+                    <td>₹${c.amount}</td>
+                    <td>${timeString}</td>
+                    <td><button class="mini-btn btn-reject" onclick="deleteCoupon(${index})">Remove</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteCoupon(index) {
+            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
+            coupons.splice(index, 1);
+            localStorage.setItem('active_coupons', JSON.stringify(coupons));
+            loadActiveCoupons();
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
             authDomain: "win-efd36.firebaseapp.com",
