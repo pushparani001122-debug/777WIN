@@ -6,7 +6,8 @@
     <title>777WIN // ADMIN CENTER</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #0b0f19; color: #f3f4f6; padding: 15px; padding-bottom: 40px; }
+        body { background: #0b0f19; color: #f3f4f6; padding: 15px; padding-bottom: 40px; display: none; }
+        body.unlocked { display: block; }
         
         .admin-header { display: flex; justify-content: space-between; align-items: center; background: #161b22; padding: 12px 15px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 15px; }
         .admin-title-main { font-size: 1rem; font-weight: bold; color: #f3f4f6; letter-spacing: 0.5px; }
@@ -26,9 +27,12 @@
         .requests-table th, .requests-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #30363d; }
         .requests-table th { color: #9ca3af; background: #0d1117; }
         .no-data { text-align: center; color: #6b7280; padding: 15px; font-size: 0.8rem; }
+        .mini-btn { padding: 4px 8px; border-radius: 4px; border: none; font-size: 0.7rem; font-weight: bold; cursor: pointer; margin-right: 4px; }
+        .btn-approve { background: #16a34a; color: white; }
+        .btn-reject { background: #dc2626; color: white; }
     </style>
 
-    <!-- Firebase App & Firestore Scripts (Compat v10) -->
+    <!-- Firebase App & Firestore Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
@@ -37,7 +41,7 @@
     <!-- Admin Header -->
     <div class="admin-header">
         <div class="admin-title-main">777WIN // ADMIN CENTER</div>
-        <button class="lock-terminal-btn">Lock Terminal</button>
+        <button class="lock-terminal-btn" onclick="lockAdmin()">Lock Terminal</button>
     </div>
 
     <!-- Deposit QR & UPI Controller -->
@@ -45,16 +49,17 @@
         <span class="section-title">Deposit QR & UPI Controller</span>
         <div class="form-group">
             <label class="form-label">Admin UPI ID</label>
-            <input type="text" class="form-input" value="8437871238@fam">
+            <input type="text" id="adminUpiInput" class="form-input" placeholder="e.g. 8437871238@fam">
         </div>
         <div class="form-group">
             <label class="form-label">Upload QR Code Image (Gallery)</label>
-            <input type="file" class="form-input" style="padding: 6px;">
+            <input type="file" id="adminQrFile" class="form-input" style="padding: 6px;" accept="image/*">
         </div>
-        <button class="action-btn">Save Payment Gateway</button>
+        <button class="action-btn" onclick="savePaymentGateway()">Save Payment Gateway</button>
+        <div id="paymentStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
     </div>
   
-    <!-- Aviator Game Result Controller (Cloud Synced via Firebase) -->
+    <!-- Aviator Game Result Controller -->
     <div class="section-card" style="border-color: #e11d48;">
         <span class="section-title" style="color: #e11d48;">Aviator Game Result Controller</span>
         <div class="form-group">
@@ -70,13 +75,14 @@
         <span class="section-title">Generate Coupon Code</span>
         <div class="form-group">
             <label class="form-label">Coupon Code</label>
-            <input type="text" class="form-input" placeholder="e.g. WIN999">
+            <input type="text" id="couponCodeInput" class="form-input" placeholder="e.g. WIN999">
         </div>
         <div class="form-group">
             <label class="form-label">Amount (₹)</label>
-            <input type="number" class="form-input" placeholder="e.g. 100">
+            <input type="number" id="couponAmountInput" class="form-input" placeholder="e.g. 100">
         </div>
-        <button class="action-btn" style="background: #2563eb;">Create Coupon</button>
+        <button class="action-btn" style="background: #2563eb;" onclick="createCoupon()">Create Coupon</button>
+        <div id="couponStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
     </div>
 
     <!-- Pending Requests -->
@@ -86,16 +92,165 @@
             <thead>
                 <tr><th>User</th><th>Type</th><th>Details</th><th>Action</th></tr>
             </thead>
-            <tbody>
+            <tbody id="requestsTableBody">
                 <tr><td colspan="4" class="no-data">No pending requests</td></tr>
             </tbody>
         </table>
     </div>
 
     <script>
-        // Apni Firebase Project ki config yahan dalein
+        const ADMIN_PASSWORD = "admin123"; // Yahan aap apna pasandida password rakh sakte hain
+
+        window.onload = function() {
+            // Password Authentication Check
+            let isUnlocked = sessionStorage.getItem('admin_unlocked');
+            if (isUnlocked !== "true") {
+                let pwd = prompt("Enter Admin Password to Access Center:");
+                if (pwd === ADMIN_PASSWORD) {
+                    sessionStorage.setItem('admin_unlocked', "true");
+                    document.body.classList.add('unlocked');
+                } else {
+                    alert("Incorrect Password! Access Denied.");
+                    window.location.href = "index.html";
+                    return;
+                }
+            } else {
+                document.body.classList.add('unlocked');
+            }
+
+            // Load Saved Admin Settings
+            let savedUpi = localStorage.getItem('admin_upi');
+            if(savedUpi) {
+                document.getElementById('adminUpiInput').value = savedUpi;
+            }
+
+            let savedVal = localStorage.getItem('adminNextMultiplier');
+            if(savedVal) {
+                document.getElementById('adminMultiplierInput').value = savedVal;
+            }
+
+            loadRequests();
+        };
+
+        function lockAdmin() {
+            sessionStorage.removeItem('admin_unlocked');
+            window.location.href = "index.html";
+        }
+
+        // Save UPI & QR Code to localStorage
+        function savePaymentGateway() {
+            let upi = document.getElementById('adminUpiInput').value.trim();
+            let fileInput = document.getElementById('adminQrFile');
+            let status = document.getElementById('paymentStatus');
+
+            if(upi) {
+                localStorage.setItem('admin_upi', upi);
+            }
+
+            if(fileInput.files && fileInput.files[0]) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem('admin_qr', e.target.result);
+                    status.innerText = "Payment Gateway & QR Saved Successfully!";
+                    setTimeout(() => status.innerText = "", 3000);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                status.innerText = "UPI ID Saved Successfully!";
+                setTimeout(() => status.innerText = "", 3000);
+            }
+        }
+
+        // Load and display pending requests from user actions
+        function loadRequests() {
+            let tbody = document.getElementById('requestsTableBody');
+            let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
+            let pending = requests.filter(r => r.status === 'Pending');
+
+            if(pending.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="no-data">No pending requests</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            pending.forEach((req, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${req.user}</td>
+                    <td><span style="color: ${req.type === 'Deposit' ? '#16a34a' : '#ca8a04'}">${req.type} (₹${req.amount})</span></td>
+                    <td>${req.details}</td>
+                    <td>
+                        <button class="mini-btn btn-approve" onclick="handleRequest(${index}, 'Approved')">Approve</button>
+                        <button class="mini-btn btn-reject" onclick="handleRequest(${index}, 'Rejected')">Reject</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Approve or Reject Deposit/Withdrawal & Update User Wallet Balance
+        function handleRequest(index, action) {
+            let requests = JSON.parse(localStorage.getItem('userRequests')) || [];
+            let pending = requests.filter(r => r.status === 'Pending');
+            let targetReq = pending[index];
+
+            // Real index find karo main array mein
+            let realIndex = requests.findIndex(r => r === targetReq);
+            if(realIndex !== -1) {
+                requests[realIndex].status = action;
+
+                if(action === 'Approved') {
+                    let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
+                    let userObj = backupDb.find(u => u.username === targetReq.user || u.phone === targetReq.user);
+                    
+                    if(userObj) {
+                        let currentBal = parseFloat(userObj.balance) || 0;
+                        let reqAmt = parseFloat(targetReq.amount) || 0;
+                        
+                        if(targetReq.type === 'Deposit') {
+                            userObj.balance = currentBal + reqAmt;
+                        } else if(targetReq.type === 'Withdrawal') {
+                            if(currentBal >= reqAmt) {
+                                userObj.balance = currentBal - reqAmt;
+                            } else {
+                                alert("User has insufficient balance for this withdrawal!");
+                                return;
+                            }
+                        }
+                        localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
+                    }
+                }
+
+                localStorage.setItem('userRequests', JSON.stringify(requests));
+                loadRequests();
+                alert(`Request ${action} successfully!`);
+            }
+        }
+
+        // Create Coupon Code
+        function createCoupon() {
+            let code = document.getElementById('couponCodeInput').value.trim().toUpperCase();
+            let amount = document.getElementById('couponAmountInput').value.trim();
+            let status = document.getElementById('couponStatus');
+
+            if(!code || !amount) {
+                alert("Please enter both coupon code and amount!");
+                return;
+            }
+
+            let coupons = JSON.parse(localStorage.getItem('active_coupons')) || [];
+            coupons.push({ code: code, amount: parseFloat(amount) });
+            localStorage.setItem('active_coupons', JSON.stringify(coupons));
+
+            status.innerText = `Coupon ${code} (₹${amount}) Created Successfully!`;
+            document.getElementById('couponCodeInput').value = '';
+            document.getElementById('couponAmountInput').value = '';
+            setTimeout(() => status.innerText = "", 3000);
+        }
+
+        // Firebase Config for Aviator
         const firebaseConfig = {
-         apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
             authDomain: "win-efd36.firebaseapp.com",
             projectId: "win-efd36",
             storageBucket: "win-efd36.firebasestorage.app",
@@ -103,30 +258,22 @@
             appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
-
-        window.onload = function() {
-            // Optional: local storage backup load karne ke liye
-            let savedVal = localStorage.getItem('adminNextMultiplier');
-            if(savedVal) {
-                document.getElementById('adminMultiplierInput').value = savedVal;
-            }
-        };
 
         function saveAdminMultiplier() {
             let val = document.getElementById('adminMultiplierInput').value.trim();
             let msg = document.getElementById('adminStatusMsg');
             let multiplier = (val === "" || isNaN(val) || parseFloat(val) <= 0) ? 1.00 : parseFloat(val);
 
-            // LocalStorage me bhi save rakho
             if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
                 localStorage.removeItem('adminNextMultiplier');
             } else {
                 localStorage.setItem('adminNextMultiplier', val);
             }
 
-            // Firebase Firestore par cloud sync ke liye bhej do
             db.collection("gameSettings").doc("aviator").set({
                 targetMultiplier: multiplier,
                 repeatCount: 0,
@@ -135,7 +282,7 @@
                 if(multiplier === 1.00) {
                     msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
                 } else {
-                    msg.innerText = `Successfully Saved: ${multiplier}x (Will repeat 7 times across all devices)`;
+                    msg.innerText = `Successfully Saved: ${multiplier}x`;
                 }
                 setTimeout(() => { msg.innerText = ""; }, 4000);
             }).catch((error) => {
