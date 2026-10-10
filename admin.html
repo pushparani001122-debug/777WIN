@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,10 +31,6 @@
         .btn-approve { background: #16a34a; color: white; }
         .btn-reject { background: #dc2626; color: white; }
     </style>
-
-    <!-- Firebase App & Firestore Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -98,6 +94,38 @@
         </table>
     </div>
 
+    <!-- Bonus Offer Controller -->
+    <div class="section-card" style="border-color: #38bdf8;">
+        <span class="section-title" style="color: #38bdf8;">Bonus Offer Controller</span>
+        <div class="form-group">
+            <label class="form-label">Bonus Condition / Description</label>
+            <input type="text" id="bonusConditionInput" class="form-input" placeholder="e.g. Complete 5 games or make a deposit">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Bonus Winning Amount (₹)</label>
+            <input type="number" id="bonusAmountInput" class="form-input" placeholder="e.g. 50">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Validity (in Days - visible only to users)</label>
+            <input type="number" id="bonusDaysInput" class="form-input" placeholder="e.g. 3">
+        </div>
+        <button class="action-btn" style="background: #0284c7;" onclick="createAdminBonus()">Publish Bonus Offer</button>
+        <div id="bonusStatus" style="font-size: 0.75rem; color: #22c55e; margin-top: 6px; text-align: center;"></div>
+    </div>
+
+    <!-- Active Bonuses Status List (Admin View without validity) -->
+    <div class="section-card">
+        <span class="section-title">Active Bonuses For Users</span>
+        <table class="requests-table">
+            <thead>
+                <tr><th>Condition</th><th>Winning Amount</th><th>Action</th></tr>
+            </thead>
+            <tbody id="adminActiveBonusesTable">
+                <tr><td colspan="3" class="no-data">No active bonus offers</td></tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Pending Requests -->
     <div class="section-card">
         <span class="section-title">Pending Deposit / Withdrawal Requests</span>
@@ -142,6 +170,7 @@
 
             loadRequests();
             loadActiveCoupons();
+            loadAdminBonuses();
             setInterval(loadActiveCoupons, 30000); // Check expiry every 30 seconds
         };
 
@@ -303,20 +332,77 @@
             loadActiveCoupons();
         }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
-            authDomain: "win-efd36.firebaseapp.com",
-            projectId: "win-efd36",
-            storageBucket: "win-efd36.firebasestorage.app",
-            messagingSenderId: "436312832717",
-            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
-        };
+        // Bonus Admin Functions
+        function createAdminBonus() {
+            let condition = document.getElementById('bonusConditionInput').value.trim();
+            let amount = document.getElementById('bonusAmountInput').value.trim();
+            let days = document.getElementById('bonusDaysInput').value.trim();
+            let status = document.getElementById('bonusStatus');
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
+            if(!condition || !amount || !days) {
+                alert("Please fill out all bonus fields!");
+                return;
+            }
+
+            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
+            let expiryTime = new Date().getTime() + (parseInt(days) * 24 * 60 * 60 * 1000);
+            
+            bonuses.push({
+                id: 'bonus_' + Date.now(),
+                condition: condition,
+                amount: parseFloat(amount),
+                days: parseInt(days),
+                expiry: expiryTime
+            });
+
+            localStorage.setItem('admin_active_bonuses', JSON.stringify(bonuses));
+            loadAdminBonuses();
+
+            status.innerText = "Bonus Offer Published Successfully!";
+            document.getElementById('bonusConditionInput').value = '';
+            document.getElementById('bonusAmountInput').value = '';
+            document.getElementById('bonusDaysInput').value = '';
+            setTimeout(() => status.innerText = "", 3000);
         }
-        const db = firebase.firestore();
 
+        function loadAdminBonuses() {
+            let tbody = document.getElementById('adminActiveBonusesTable');
+            if(!tbody) return;
+
+            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
+            let currentTime = new Date().getTime();
+
+            let validBonuses = bonuses.filter(b => currentTime < b.expiry);
+
+            if(validBonuses.length !== bonuses.length) {
+                localStorage.setItem('admin_active_bonuses', JSON.stringify(validBonuses));
+            }
+
+            if(validBonuses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="no-data">No active bonus offers</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            validBonuses.forEach((b, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${b.condition}</td>
+                    <td style="color: #38bdf8; font-weight: bold;">₹${b.amount}</td>
+                    <td><button class="mini-btn btn-reject" onclick="removeAdminBonus(${index})">Remove</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function removeAdminBonus(index) {
+            let bonuses = JSON.parse(localStorage.getItem('admin_active_bonuses')) || [];
+            bonuses.splice(index, 1);
+            localStorage.setItem('admin_active_bonuses', JSON.stringify(bonuses));
+            loadAdminBonuses();
+        }
+
+        // Local Storage Based Multiplier Control for Aviator
         function saveAdminMultiplier() {
             let val = document.getElementById('adminMultiplierInput').value.trim();
             let msg = document.getElementById('adminStatusMsg');
@@ -324,24 +410,12 @@
 
             if(val === "" || isNaN(val) || parseFloat(val) <= 0) {
                 localStorage.removeItem('adminNextMultiplier');
+                msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
             } else {
                 localStorage.setItem('adminNextMultiplier', val);
+                msg.innerText = `Successfully Saved: ${multiplier}x`;
             }
-
-            db.collection("gameSettings").doc("aviator").set({
-                targetMultiplier: multiplier,
-                repeatCount: 0,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                if(multiplier === 1.00) {
-                    msg.innerText = "Saved Successfully: Default Direct Crash at 1.00x";
-                } else {
-                    msg.innerText = `Successfully Saved: ${multiplier}x`;
-                }
-                setTimeout(() => { msg.innerText = ""; }, 4000);
-            }).catch((error) => {
-                alert("Cloud Sync Error: " + error.message);
-            });
+            setTimeout(() => { msg.innerText = ""; }, 4000);
         }
     </script>
 </body>
