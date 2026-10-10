@@ -822,66 +822,150 @@
                 } while (Object.values(refCodes).includes(myReferralCode));
 
                 refCodes[userVal] = myReferralCode;
-                localStorage.setItem('user_referral_codes', JSON.stringify(refCodes));
+        async function handleAuth() {
+            const userVal = document.getElementById('auth-username').value.trim();
+            const emailVal = document.getElementById('auth-email').value.trim();
+            const passwordVal = document.getElementById('auth-password').value.trim();
+            const confirmPwdVal = document.getElementById('auth-confirm-password').value.trim();
+            const referralVal = document.getElementById('auth-referral').value.trim().toUpperCase();
+            const otpVal = document.getElementById('auth-otp-input').value.trim();
+            
+            const errBox = document.getElementById('auth-error');
+            const successBox = document.getElementById('auth-success');
 
-                let initialBalance = 0;
+            errBox.style.display = 'none';
+            successBox.style.display = 'none';
 
-                // Give ₹20 bonus to referrer
-                if (referrerUsername) {
-                    let referrerUser = backupDb.find(u => u.username === referrerUsername || u.phone === referrerUsername);
-                    if (referrerUser) {
-                        referrerUser.balance = (parseFloat(referrerUser.balance) || 0) + 20;
+            if (!userVal || !passwordVal) {
+                errBox.innerText = "Please fill out required fields!";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                if (currentAuthMode === 'register') {
+                    if (!emailVal) {
+                        errBox.innerText = "Email is required!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                    if (passwordVal !== confirmPwdVal) {
+                        errBox.innerText = "Passwords do not match!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                    const expectedOTP = localStorage.getItem('temp_generated_otp');
+                    if (!otpVal || otpVal !== expectedOTP) {
+                        errBox.innerText = "Please enter correct 6-digit OTP!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+
+                    // Check if user already exists in Firestore
+                    const userRef = db.collection("users").doc(userVal);
+                    const userDoc = await userRef.get();
+                    if (userDoc.exists) {
+                        errBox.innerText = "User already registered! Please login.";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+
+                    let referrerId = null;
+                    // Check Referral Code globally in Firestore
+                    if (referralVal) {
+                        const refQuery = await db.collection("users").where("referralCode", "==", referralVal).get();
+                        if (refQuery.empty) {
+                            errBox.innerText = "Invalid referral code!";
+                            errBox.style.display = 'block';
+                            return;
+                        } else {
+                            referrerId = refQuery.docs[0].id;
+                        }
+                    }
+
+                    // Generate unique referral code for new user
+                    let myReferralCode = "WIN" + Math.floor(100000 + Math.random() * 900000);
+                    
+                    let initialBalance = 0;
+
+                    // If valid referral, give ₹20 bonus to referrer in Firestore
+                    if (referrerId) {
+                        const referrerRef = db.collection("users").doc(referrerId);
+                        const referrerDoc = await referrerRef.get();
+                        if (referrerDoc.exists) {
+                            let currentRefBal = parseFloat(referrerDoc.data().balance || 0);
+                            await referrerRef.update({
+                                balance: currentRefBal + 20
+                            });
+                        }
+                    }
+
+                    // Save new user to Firestore database
+                    await userRef.set({
+                        username: userVal,
+                        phone: userVal,
+                        email: emailVal,
+                        password: passwordVal,
+                        referralCode: myReferralCode,
+                        balance: initialBalance
+                    });
+
+                    // Local storage sync for active session
+                    localStorage.setItem('active_user', userVal);
+                    localStorage.setItem('userBalance', initialBalance.toFixed(2));
+                    localStorage.setItem('userUid', myReferralCode);
+                    navigateToDashboard();
+
+                } else if (currentAuthMode === 'forgot') {
+                    const expectedOTP = localStorage.getItem('temp_generated_otp');
+                    if (!otpVal || otpVal !== expectedOTP) {
+                        errBox.innerText = "Please enter correct verification OTP code!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                    const userRef = db.collection("users").doc(userVal);
+                    const userDoc = await userRef.get();
+                    if (!userDoc.exists) {
+                        errBox.innerText = "User account not found!";
+                        errBox.style.display = 'block';
+                        return;
+                    }
+                    
+                    await userRef.update({ password: passwordVal });
+                    successBox.innerText = "Password successfully updated! Please login.";
+                    successBox.style.display = 'block';
+                    setTimeout(() => switchMode('login'), 2000);
+
+                } else {
+                    // Login check from Firestore
+                    if (userVal === "admin" && passwordVal === "admin") {
+                        localStorage.setItem('active_user', userVal);
+                        localStorage.setItem('userBalance', '0.00');
+                        navigateToDashboard();
+                        return;
+                    }
+
+                    const userRef = db.collection("users").doc(userVal);
+                    const userDoc = await userRef.get();
+                    
+                    if (userDoc.exists && userDoc.data().password === passwordVal) {
+                        let userData = userDoc.data();
+                        localStorage.setItem('active_user', userVal);
+                        localStorage.setItem('userBalance', (userData.balance || 0).toFixed(2));
+                        localStorage.setItem('userUid', userData.referralCode || '');
+                        navigateToDashboard();
+                    } else {
+                        errBox.innerText = "Wrong Password, Username, or Phone!";
+                        errBox.style.display = 'block';
                     }
                 }
-
-                const newUser = {
-                    username: userVal,
-                    phone: userVal,
-                    email: emailVal,
-                    password: passwordVal,
-                    balance: initialBalance
-                };
-
-                backupDb.push(newUser);
-                localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
-                localStorage.setItem('active_user', userVal);
-                localStorage.setItem('userBalance', initialBalance.toFixed(2));
-                navigateToDashboard();
-
-            } else if (currentAuthMode === 'forgot') {
-                const expectedOTP = localStorage.getItem('temp_generated_otp');
-                if (!otpVal || otpVal !== expectedOTP) {
-                    errBox.innerText = "Please enter correct verification OTP code!";
-                    errBox.style.display = 'block';
-                    return;
-                }
-                let userObj = backupDb.find(u => u.phone === userVal || u.username === userVal);
-                if (!userObj) {
-                    errBox.innerText = "User account not found!";
-                    errBox.style.display = 'block';
-                    return;
-                }
-                
-                userObj.password = passwordVal;
-                localStorage.setItem('user_backup_db', JSON.stringify(backupDb));
-
-                successBox.innerText = "Password successfully updated! Please login.";
-                successBox.style.display = 'block';
-                setTimeout(() => switchMode('login'), 2000);
-
-            } else {
-                const user = backupDb.find(u => (u.phone === userVal || u.email === userVal || u.username === userVal) && u.password === passwordVal);
-                if (user || (userVal === "admin" && passwordVal === "admin")) {
-                    localStorage.setItem('active_user', userVal);
-                    let userBal = user ? (user.balance || 0) : 0;
-                    localStorage.setItem('userBalance', userBal.toFixed(2));
-                    navigateToDashboard();
-                } else {
-                    errBox.innerText = "Wrong Password, Username, or Phone!";
-                    errBox.style.display = 'block';
-                }
+            } catch (error) {
+                console.error("Auth error: ", error);
+                errBox.innerText = "Database error! Please try again.";
+                errBox.style.display = 'block';
             }
         }
+
    
 
       const games = [
