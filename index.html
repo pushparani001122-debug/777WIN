@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>777WIN - Gaming Platform</title>
+    <!-- Firebase App & Firestore Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiiCRQ_LXz2iUTmp3LyfyxJg9gFtCSHBA",
+            authDomain: "win-efd36.firebaseapp.com",
+            projectId: "win-efd36",
+            storageBucket: "win-efd36.firebasestorage.app",
+            messagingSenderId: "436312832717",
+            appId: "1:436312832717:web:e6512ab4fa99e9a0bf0784"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+    </script>
 
     <style>
         :root {
@@ -966,25 +983,28 @@
             openModal('deposit-modal');
             loadAdminPaymentDetails();
         }
-
-                   function loadAdminPaymentDetails() {
-            if (typeof db !== 'undefined') {
-                db.collection("gameSettings").doc("paymentGateway").get().then((doc) => {
+                async function loadAdminPaymentDetails() {
+            try {
+                if (typeof db !== 'undefined') {
+                    let doc = await db.collection("gameSettings").doc("paymentGateway").get();
                     if (doc.exists) {
                         let data = doc.data();
                         const qrPrev = document.getElementById('admin-qr-preview');
                         const upiTxt = document.getElementById('admin-upi-text');
-                        if (qrPrev && data.qrCode) qrPrev.src = data.qrCode;
-                        if (upiTxt) upiTxt.innerText = `UPI ID: ${data.upi || '777win@upi'}`;
+                        
+                        if (qrPrev && data.qrCode) {
+                            qrPrev.src = data.qrCode;
+                        }
+                        if (upiTxt) {
+                            upiTxt.innerText = `UPI ID: ${data.upi || '777win@upi'}`;
+                        }
                     }
-                }).catch((error) => {
-                    console.log("Error loading payment gateway: ", error);
-                });
+                }
+            } catch (error) {
+                console.log("Cloud sync loading error: ", error);
             }
         }
-    
-    
- 
+
       function submitDeposit() {
             const amt = document.getElementById('deposit-amount').value;
             const utr = document.getElementById('deposit-utr').value;
