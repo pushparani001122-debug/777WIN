@@ -641,14 +641,19 @@
             checkExistingSession();
         }, 2000);
 
-        setInterval(() => {
+                // Live cloud sync for Header Wallet
+        setInterval(async () => {
             const activeUser = localStorage.getItem('active_user');
-            if(activeUser) {
-                let backupDb = JSON.parse(localStorage.getItem('user_backup_db')) || [];
-                let userObj = backupDb.find(u => u.username === activeUser || u.phone === activeUser || u.email === activeUser);
-                if(userObj) {
-                    localStorage.setItem('userBalance', (userObj.balance || 0).toFixed(2));
-                    updateWalletDisplay();
+            if (activeUser && typeof db !== 'undefined') {
+                try {
+                    let doc = await db.collection("users").doc(activeUser).get();
+                    if (doc.exists) {
+                        let liveBal = parseFloat(doc.data().balance || 0).toFixed(2);
+                        localStorage.setItem('userBalance', liveBal);
+                        updateWalletDisplay();
+                    }
+                } catch(e) {
+                    console.log("Cloud balance sync error:", e);
                 }
             }
         }, 2000);
@@ -1002,14 +1007,29 @@
             }
         }
 
-        function navigateToDashboard() {
+                async function navigateToDashboard() {
             document.getElementById('auth-screen').classList.remove('active');
             document.getElementById('dashboard-screen').classList.add('active');
+            
+            const activeUser = localStorage.getItem('active_user');
+            if (activeUser && typeof db !== 'undefined') {
+                try {
+                    let doc = await db.collection("users").doc(activeUser).get();
+                    if (doc.exists) {
+                        let liveBal = parseFloat(doc.data().balance || 0).toFixed(2);
+                        localStorage.setItem('userBalance', liveBal);
+                    }
+                } catch(e) {
+                    console.log("Cloud balance sync error:", e);
+                }
+            }
+            
             updateWalletDisplay();
             startBannerCarousel();
             renderGames('ALL');
             loadAdminPaymentDetails();
         }
+
 
         function updateWalletDisplay() {
             const bal = localStorage.getItem('userBalance') || '0.00';
